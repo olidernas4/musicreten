@@ -1,0 +1,45 @@
+{
+  "folio": "MD-20261116-98C39E02",
+  "id": "10cd67b4-e310-408d-9f05-2186850a341c",
+  "title": "Beneath_the_Iron_Sky",
+  "author": {
+    "name": "olider",
+    "document": "1113660180",
+    "email": "olinasdj@gmail.com",
+    "country": "colombia",
+    "alias": "olinas"
+  },
+  "coauthors": [
+    {
+      "name": "olider naravez",
+      "role": ""
+    }
+  ],
+  "license": "Todos los derechos reservados",
+  "hash": "98c39e02c3cb583752de81e4064d9fd819501c25bb0f3a50e1362bdb1b62ca01",
+  "hashAlgorithm": "SHA-256",
+  "sizeBytes": 32341616,
+  "duration": 183.34,
+  "sampleRate": 44100,
+  "channels": 2,
+  "bits": 16,
+  "createdAt": "2026-11-16T18:55:58.718Z",
+  "generator": {
+    "app": "MusicDerechos Studio",
+    "version": "1.0.0",
+    "engine": "edicion-manual",
+    "params": null,
+    "externalAi": false
+  },
+  "humanContributions": [
+    "Idea, concepto y dirección creativa",
+    "Selección de género, tonalidad, tempo y estado de ánimo",
+    "Edición de la estructura: recortes, silencios y repeticiones",
+    "Ajustes de mezcla: volumen, paneo, fades y efectos"
+  ],
+  "notes": "toda la estrutura de sonidos complejos solo se automatiza el sonido con la ia que no se pierda   los cortes no se vean tan drasticos",
+  "declaration": "Declaro que la información consignada es veraz y que las aportaciones creativas humanas descritas fueron realizadas por mí o por las personas acreditadas como coautoras.",
+  "prevEntryHash": "GENESIS",
+  "entryHash": "d7ef95fc65da161c0e151e14c587a1b5ba14a19ab98641c0248735ab213e4f5d",
+  "file": "works/10cd67b4-e310-408d-9f05-2186850a341c/master.wav"
+}

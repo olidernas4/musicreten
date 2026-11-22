@@ -1,0 +1,635 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MusicDerechos Studio — Música con IA, edición y certificado de autoría</title>
+<link rel="stylesheet" href="/css/styles.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%2315141d'/%3E%3Cpath d='M32 68V34l34-8v34' stroke='%239b8cff' stroke-width='8' fill='none' stroke-linecap='round'/%3E%3Ccircle cx='28' cy='70' r='9' fill='%236ef2c4'/%3E%3Ccircle cx='62' cy='62' r='9' fill='%236ef2c4'/%3E%3C/svg%3E">
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar">
+    <div class="logo">
+      <div class="logo-mark">
+        <svg viewBox="0 0 100 100" aria-hidden="true"><path d="M32 68V34l34-8v34" stroke="currentColor" stroke-width="9" fill="none" stroke-linecap="round"/><circle cx="27" cy="71" r="10" fill="currentColor"/><circle cx="61" cy="63" r="10" fill="currentColor"/></svg>
+      </div>
+      <div>
+        <strong>MusicDerechos</strong>
+        <span>Studio</span>
+      </div>
+    </div>
+
+    <nav class="nav">
+      <span class="nav-label">Tu espacio</span>
+      <button class="nav-item active" data-view="estudio">
+        <span class="nav-ico">◉</span> Estudio
+      </button>
+      <button class="nav-item" data-view="generar">
+        <span class="nav-ico">✦</span> Generar música
+      </button>
+      <button class="nav-item" data-view="biblioteca">
+        <span class="nav-ico">▦</span> Biblioteca
+      </button>
+      <button class="nav-item" data-view="agentes">
+        <span class="nav-ico">◆</span> Agentes especiales
+      </button>
+      <button class="nav-item" data-view="derechos">
+        <span class="nav-ico">§</span> Derechos y certificado
+      </button>
+      <button class="nav-item" data-view="registro">
+        <span class="nav-ico">▤</span> Registro
+      </button>
+    </nav>
+
+    <div class="sidebar-foot">
+      <span class="pill pill-green">100% local</span>
+      <p>Tu audio no se envía a ningún servicio externo. La IA se ejecuta en tu equipo.</p>
+    </div>
+  </aside>
+
+  <main class="main">
+    <header class="topbar">
+      <div class="project-box">
+        <span class="eyebrow">Proyecto actual</span>
+        <input id="projectTitle" value="Mi obra" spellcheck="false" aria-label="Título del proyecto">
+      </div>
+      <div class="topbar-actions">
+        <span id="saveState" class="muted">Sesión guardada en memoria</span>
+        <button id="btnHelp" class="icon-btn" title="Ayuda">?</button>
+      </div>
+    </header>
+
+    <section id="view-estudio" class="view active">
+      <div class="studio-intro">
+        <div class="studio-intro-copy">
+          <span class="eyebrow">01 / Producción local</span>
+          <h1>Tu sonido, <em>a tu manera.</em></h1>
+          <p>Un espacio para crear, editar y dejar constancia de cada obra.</p>
+        </div>
+        <div class="wave-art" aria-hidden="true">
+          <span></span><span></span><span></span><span></span><span></span>
+          <span></span><span></span><span></span><span></span><span></span>
+          <span></span><span></span><span></span><span></span><span></span>
+          <span></span><span></span><span></span><span></span><span></span>
+          <span></span><span></span><span></span><span></span><span></span>
+        </div>
+      </div>
+      <div class="studio-toolbar">
+        <div class="transport">
+          <button id="btnPlay" class="transport-btn" title="Reproducir (espacio)">▶</button>
+          <button id="btnStop" class="transport-btn ghost" title="Detener">■</button>
+          <label class="check"><input type="checkbox" id="loopToggle"> Loop</label>
+          <span id="timeDisplay" class="time">0:00.0 / 0:00.0</span>
+        </div>
+        <div class="tool-group">
+          <label class="btn file-btn">
+            Importar audio
+            <input type="file" id="fileInput" multiple accept="audio/*">
+          </label>
+          <div class="dropdown">
+            <button id="btnSounds" class="btn">Añadir sonido ▾</button>
+            <div id="soundMenu" class="menu hidden"></div>
+          </div>
+          <button id="btnSaveProject" class="btn ghost" title="Guardar proyecto .mdproj.json">Guardar</button>
+          <button id="btnOpenProject" class="btn ghost" title="Abrir proyecto guardado">Abrir</button>
+          <input id="projectFileInput" type="file" accept=".json,.mdproj,application/json" hidden>
+          <select id="exportFormat" class="export-format" aria-label="Formato de exportación">
+            <option value="mp3" selected>MP3</option>
+            <option value="wav">WAV</option>
+            <option value="flac">FLAC</option>
+            <option value="ogg">OGG</option>
+          </select>
+          <button id="btnExport" class="btn">Exportar</button>
+          <button id="btnCertify" class="btn primary">Certificar obra</button>
+        </div>
+        <div class="zoom-box">
+          <label for="zoom">Zoom</label>
+          <input type="range" id="zoom" min="24" max="180" value="64">
+        </div>
+      </div>
+
+      <div class="editor">
+        <div class="track-headers" id="trackHeaders"></div>
+        <div class="canvas-scroll" id="canvasScroll">
+          <canvas id="timeline" height="420"></canvas>
+        </div>
+      </div>
+
+      <div class="inspector" id="inspector">
+        <p class="muted">Selecciona un clip en la línea de tiempo para recortarlo, moverlo, ajustar volumen, fades y paneo. Arrastra el borde de un clip para recortar.</p>
+      </div>
+
+      <div class="card used-sounds-card">
+        <div class="used-sounds-head">
+          <h2>Sonidos usados</h2>
+          <span id="usedSoundsSummary" class="muted small"></span>
+        </div>
+        <div id="usedSounds" class="used-sounds-list"></div>
+      </div>
+
+      <div class="studio-hint">
+        <span><strong>Tip:</strong> arrastra los bordes de un clip para recortar; arrastra el centro para moverlo.</span>
+        <span>Espacio = reproducir / pausar · Supr = eliminar clip</span>
+      </div>
+    </section>
+
+    <section id="view-generar" class="view">
+      <div class="section-head">
+        <div>
+          <h1>Generar música local</h1>
+          <p>Escribe el género o estilo que quieres. El motor local todavía no genera voces.</p>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <div class="style-prompt-head">
+            <h2>Estilos</h2>
+            <button id="btnToggleStyle" class="btn small-btn style-toggle is-on" type="button" aria-pressed="true">Usar estilo: Sí</button>
+          </div>
+          <textarea id="genPrompt" rows="3" aria-label="Estilos y géneros musicales" placeholder="bachata urbana, ambient dub techno, casio core, classique, 2020s"></textarea>
+          <div class="style-suggestions" id="styleSuggestions" aria-label="Sugerencias de estilos">
+            <span class="muted small">Añadir:</span>
+            <button type="button" class="style-suggestion" data-style-tag="bachata urbana">bachata urbana</button>
+            <button type="button" class="style-suggestion" data-style-tag="ambient dub techno">ambient dub techno</button>
+            <button type="button" class="style-suggestion" data-style-tag="casio core">casio core</button>
+            <button type="button" class="style-suggestion" data-style-tag="classique">classique</button>
+            <button type="button" class="style-suggestion" data-style-tag="2020s">2020s</button>
+          </div>
+          <p class="muted small style-prompt-note">Escribe uno o varios estilos y géneros tal cual, separados por comas. Si escribes mientras está desactivado, se activará automáticamente.</p>
+          <p id="genStyleStatus" class="style-status" aria-live="polite">Escribe un estilo para orientar la generación.</p>
+          <div class="form-grid">
+            <label>Género base
+              <select id="genGenre">
+                <option value="auto" selected>Según el estilo</option>
+                <option value="pop">Pop</option>
+                <option value="lofi">Lo-fi / Chill</option>
+                <option value="electronic">Electrónica / EDM</option>
+                <option value="cinematic">Cinemática / Épica</option>
+                <option value="trap">Trap / Urbano</option>
+                <option value="rock">Rock / Banda</option>
+                <option value="metalcore">Metalcore / Post-hardcore</option>
+                <option value="acustico">Acústico / Balada</option>
+                <option value="jazz">Jazz / Neo-soul</option>
+              </select>
+            </label>
+            <label>Estado de ánimo
+              <select id="genMood">
+                <option value="auto" selected>Según el estilo</option>
+                <option value="alegre">Alegre</option>
+                <option value="epico">Épico</option>
+                <option value="romantico">Romántico</option>
+                <option value="melancolico">Melancólico</option>
+                <option value="misterioso">Misterioso</option>
+                <option value="energetico">Energético</option>
+                <option value="relajado">Relajado</option>
+              </select>
+            </label>
+            <label>Tonalidad
+              <select id="genKey">
+                <option value="auto">Automática</option>
+                <option value="C major">Do mayor</option>
+                <option value="G major">Sol mayor</option>
+                <option value="D major">Re mayor</option>
+                <option value="A major">La mayor</option>
+                <option value="F major">Fa mayor</option>
+                <option value="Bb major">Sib mayor</option>
+                <option value="A minor">La menor</option>
+                <option value="B minor">Si menor</option>
+                <option value="E minor">Mi menor</option>
+                <option value="D minor">Re menor</option>
+                <option value="C minor">Do menor</option>
+              </select>
+            </label>
+            <label>Modo
+              <select id="genMode">
+                <option value="auto">Automático</option>
+                <option value="major">Mayor</option>
+                <option value="minor">Menor</option>
+              </select>
+            </label>
+            <label>Tempo (BPM)
+              <input id="genBpm" type="number" min="50" max="180" placeholder="Automático">
+            </label>
+            <label>Duración objetivo
+              <select id="genDuration">
+                <option value="30">30 segundos</option>
+                <option value="60">1 minuto</option>
+                <option value="90" selected>1:30</option>
+                <option value="120">2 minutos</option>
+                <option value="180">3 minutos</option>
+              </select>
+            </label>
+            <label>Semilla (opcional)
+              <input id="genSeed" type="number" min="0" placeholder="aleatoria">
+            </label>
+            <label class="check library-mode">
+              <input type="checkbox" id="genUseLibrary" checked> Usar sonidos de mi biblioteca
+            </label>
+            <label>&nbsp;
+              <button id="btnGenerate" class="btn primary">Generar canción</button>
+            </label>
+          </div>
+          <p class="muted small">Con la biblioteca activada, metalcore usa un loop de guitarra de tu colección y samples de batería acústica; otros estilos usan kits y multisamples. Sin biblioteca, metalcore usa guitarra sintetizada local. Ninguna ruta genera voces.</p>
+        </div>
+
+        <div class="card result-card" id="genResult">
+          <div class="empty-state">
+            <div class="empty-icon">✦</div>
+            <h3>Tu próxima canción empieza aquí</h3>
+            <p>Elige un estilo o escribe una idea. En unos segundos tendrás una base editable con pistas separadas.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="card separation-card">
+        <div class="section-head">
+          <div>
+            <h2>Separar una canción</h2>
+            <p>Sube una mezcla y obtén batería, bajo, voz y otros instrumentos como pistas de audio editables.</p>
+          </div>
+          <span class="pill pill-green">Procesamiento local</span>
+        </div>
+        <div class="separation-controls">
+          <label class="btn file-btn">
+            Elegir canción
+            <input id="separationInput" type="file" accept=".wav,.aif,.aiff,.mp3,.flac,.ogg,.m4a,audio/*">
+          </label>
+          <span id="separationFileName" class="muted small">Ningún archivo seleccionado</span>
+          <button id="btnSeparate" class="btn primary" disabled>Separar en pistas</button>
+        </div>
+        <p class="muted small separation-note">Usa Demucs (HTDemucs) en este equipo. La separación estima los stems; no recupera los samples originales exactos ni genera MIDI. Los WAV/MIDI exportados desde Ableton o Drummer se pueden indexar aparte en Biblioteca.</p>
+        <div id="separationResult" class="separation-result" aria-live="polite"></div>
+      </div>
+
+      <div class="card" id="genSpecCard">
+        <div class="empty-state small">
+          <p>Cuando generes una canción, aquí verás la ficha técnica: forma, progresiones, instrumentos y decisiones de mezcla.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="view-biblioteca" class="view">
+      <div class="section-head">
+        <div>
+          <h1>Biblioteca de sonidos</h1>
+          <p>Indexa tus samples, clips MIDI y packs de Ableton sin copiarlos. Previsualiza cualquier sonido y arrástralo al estudio.</p>
+        </div>
+        <div class="action-row">
+          <span id="libraryTotals" class="muted small"></span>
+          <button class="btn" id="btnLibraryToStudio">Ir al estudio</button>
+        </div>
+      </div>
+
+      <div class="library-layout">
+        <aside class="card library-roots">
+          <h2>Carpetas indexadas</h2>
+          <p class="muted small">Los archivos se leen en su sitio. Solo las conversiones y los clips renderizados se guardan en <code>data/assets/cache</code>.</p>
+          <div id="assetRoots" class="root-list"></div>
+
+          <label class="root-add-label">Añadir carpeta
+            <input id="rootPath" placeholder="C:\Ruta\a\mis\packs" spellcheck="false">
+          </label>
+          <div class="action-row">
+            <button class="btn small-btn" id="btnAddRoot">Añadir</button>
+            <button class="btn small-btn" id="btnDetectAbleton">Detectar Ableton</button>
+          </div>
+          <div class="action-row">
+            <button class="btn primary" id="btnScanAll">Escanear todo</button>
+            <button class="btn small-btn" id="btnRefreshLibrary">Actualizar</button>
+          </div>
+          <p id="libraryStatus" class="muted small"></p>
+
+          <div class="card mini-card import-card">
+            <h3>Importar sonidos</h3>
+            <p class="small">Copia archivos de audio a <code>data/assets/imported</code> y los añade a la biblioteca automáticamente.</p>
+            <div class="import-actions">
+              <label class="btn small-btn file-btn">Importar archivos
+                <input type="file" id="assetImportFiles" multiple accept=".wav,.aif,.aiff,.mp3,.flac,.ogg,.m4a,audio/*">
+              </label>
+              <label class="btn small-btn file-btn">Importar carpeta
+                <input type="file" id="assetImportFolder" webkitdirectory multiple accept=".wav,.aif,.aiff,.mp3,.flac,.ogg,.m4a,audio/*">
+              </label>
+            </div>
+            <p id="importStatus" class="muted small"></p>
+          </div>
+
+          <div class="card mini-card">
+            <h3>Formatos</h3>
+            <p class="small">WAV, MP3, FLAC, OGG, M4A y AIFF se reproducen directamente. Los clips <code>.alc</code> y los MIDI se renderizan con el motor interno. Los grooves <code>.agr</code> y las sesiones <code>.als</code> se indexan como referencia.</p>
+          </div>
+        </aside>
+
+        <div class="library-main">
+          <div class="library-toolbar card">
+            <input id="assetSearch" placeholder="Buscar kick, 808, piano, 120 bpm…">
+            <select id="assetKind">
+              <option value="all">Todo</option>
+              <option value="audio">Audio</option>
+              <option value="midi">MIDI</option>
+              <option value="clip">Clips Ableton</option>
+              <option value="groove">Grooves</option>
+              <option value="session">Sesiones</option>
+            </select>
+            <select id="assetRootFilter">
+              <option value="">Todas las carpetas</option>
+            </select>
+            <span id="assetCount" class="muted small"></span>
+          </div>
+
+          <div id="assetList" class="asset-list">
+            <div class="empty-state small">
+              <p>Detecta tu biblioteca de Ableton o añade una carpeta y pulsa Escanear.</p>
+            </div>
+          </div>
+
+          <div class="action-row center">
+            <button class="btn" id="btnLoadMore" hidden>Cargar más</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="view-agentes" class="view">
+      <div class="section-head">
+        <div>
+          <h1>Agentes especiales</h1>
+          <p>Cuatro especialistas consultan tu proyecto y te dan decisiones concretas. No son chatbots genéricos: trabajan con teoría musical y con las reglas del estudio.</p>
+        </div>
+      </div>
+
+      <div class="agents-grid">
+        <article class="card agent-card" data-agent="productor">
+          <header>
+            <span class="agent-badge">01</span>
+            <div><h3>Productor</h3><p>Plan de producción: tempo, tonalidad, forma y arreglo.</p></div>
+          </header>
+          <div class="agent-controls">
+            <label>Género
+              <select data-field="genre">
+                <option value="pop">Pop</option>
+                <option value="lofi">Lo-fi</option>
+                <option value="electronic">Electrónica</option>
+                <option value="cinematic">Cinemática</option>
+                <option value="trap">Trap</option>
+                <option value="rock">Rock</option>
+                <option value="acustico">Acústico</option>
+                <option value="jazz">Jazz</option>
+              </select>
+            </label>
+            <label>Ánimo
+              <select data-field="mood">
+                <option value="alegre">Alegre</option>
+                <option value="epico">Épico</option>
+                <option value="romantico">Romántico</option>
+                <option value="melancolico">Melancólico</option>
+                <option value="misterioso">Misterioso</option>
+                <option value="energetico">Energético</option>
+                <option value="relajado">Relajado</option>
+              </select>
+            </label>
+            <label>Tempo
+              <input type="number" data-field="bpm" min="50" max="180" value="100">
+            </label>
+          </div>
+          <button class="btn agent-run">Consultar productor</button>
+          <div class="agent-output"></div>
+        </article>
+
+        <article class="card agent-card" data-agent="composicion">
+          <header>
+            <span class="agent-badge">02</span>
+            <div><h3>Composición</h3><p>Progresiones, motivo melódico y registro vocal.</p></div>
+          </header>
+          <div class="agent-controls">
+            <label>Ánimo
+              <select data-field="mood">
+                <option value="melancolico">Melancólico</option>
+                <option value="alegre">Alegre</option>
+                <option value="romantico">Romántico</option>
+                <option value="epico">Épico</option>
+                <option value="misterioso">Misterioso</option>
+                <option value="energetico">Energético</option>
+                <option value="relajado">Relajado</option>
+              </select>
+            </label>
+            <label>Modo
+              <select data-field="mode">
+                <option value="auto">Automático</option>
+                <option value="major">Mayor</option>
+                <option value="minor">Menor</option>
+              </select>
+            </label>
+            <label>Tonalidad
+              <select data-field="key">
+                <option value="auto">Automática</option>
+                <option value="C major">Do mayor</option>
+                <option value="A minor">La menor</option>
+                <option value="D minor">Re menor</option>
+                <option value="F major">Fa mayor</option>
+                <option value="G major">Sol mayor</option>
+              </select>
+            </label>
+          </div>
+          <button class="btn agent-run">Consultar composición</button>
+          <div class="agent-output"></div>
+        </article>
+
+        <article class="card agent-card" data-agent="mezcla">
+          <header>
+            <span class="agent-badge">03</span>
+            <div><h3>Mezcla</h3><p>Diagnóstico del proyecto: balance, máscaras y prioridades.</p></div>
+          </header>
+          <p class="muted small">El agente lee las pistas de tu estudio en este momento.</p>
+          <button class="btn agent-run">Analizar mi mezcla</button>
+          <div class="agent-output"></div>
+        </article>
+
+        <article class="card agent-card" data-agent="derechos">
+          <header>
+            <span class="agent-badge">04</span>
+            <div><h3>Derechos</h3><p>Qué prueba tu certificado y cómo reforzarlo en tu país.</p></div>
+          </header>
+          <div class="agent-controls">
+            <label>País
+              <select data-field="country">
+                <option value="espana">España</option>
+                <option value="mexico">México</option>
+                <option value="argentina">Argentina</option>
+                <option value="colombia">Colombia</option>
+                <option value="chile">Chile</option>
+                <option value="peru">Perú</option>
+                <option value="estados_unidos">Estados Unidos</option>
+                <option value="otro">Otro</option>
+              </select>
+            </label>
+            <label>¿Usaste IA?
+              <select data-field="usesAI">
+                <option value="yes">Sí, para generar o asistir</option>
+                <option value="no">No, todo lo compuse yo</option>
+              </select>
+            </label>
+          </div>
+          <button class="btn agent-run">Consultar derechos</button>
+          <div class="agent-output"></div>
+        </article>
+      </div>
+    </section>
+
+    <section id="view-derechos" class="view">
+      <div class="section-head">
+        <div>
+          <h1>Derechos y certificado de autoría</h1>
+          <p>Registra tu obra con huella SHA-256, fecha, declaración de aportaciones humanas y un certificado imprimible. Todo se guarda en tu equipo.</p>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <h2>Perfil del autor</h2>
+          <form id="authorForm" class="form-grid">
+            <label>Nombre legal *
+              <input id="authorName" required placeholder="Tu nombre completo">
+            </label>
+            <label>Alias artístico
+              <input id="authorAlias" placeholder="Opcional">
+            </label>
+            <label>Documento / ID
+              <input id="authorDocument" placeholder="DNI, cédula, pasaporte">
+            </label>
+            <label>País
+              <input id="authorCountry" placeholder="España, México, Argentina...">
+            </label>
+            <label>Correo
+              <input id="authorEmail" type="email" placeholder="tu@correo.com">
+            </label>
+            <label>&nbsp;
+              <button type="submit" class="btn">Guardar perfil</button>
+            </label>
+          </form>
+          <p id="profileState" class="muted small">El perfil se guarda solo en este navegador.</p>
+
+          <h2 class="spaced">Datos de la obra</h2>
+          <div class="form-grid">
+            <label>Título de la obra
+              <input id="certTitle" placeholder="Título">
+            </label>
+            <label>Licencia
+              <select id="certLicense">
+                <option>Todos los derechos reservados</option>
+                <option>CC BY 4.0</option>
+                <option>CC BY-NC 4.0</option>
+                <option>CC0 1.0</option>
+              </select>
+            </label>
+            <label class="full">Coautores (uno por línea: Nombre — rol)
+              <textarea id="certCoauthors" rows="2" placeholder="Ana Pérez — letra"></textarea>
+            </label>
+          </div>
+
+          <h3 class="spaced">Aportaciones humanas</h3>
+          <div class="contrib-grid" id="contribGrid">
+            <label class="check"><input type="checkbox" value="Idea, concepto y dirección creativa"> Idea y dirección creativa</label>
+            <label class="check"><input type="checkbox" value="Selección de género, tonalidad, tempo y estado de ánimo"> Selección musical (género, tonalidad, tempo)</label>
+            <label class="check"><input type="checkbox" value="Edición de la estructura: recortes, silencios y repeticiones"> Edición de estructura y recortes</label>
+            <label class="check"><input type="checkbox" value="Ajustes de mezcla: volumen, paneo, fades y efectos"> Mezcla y ajustes de audio</label>
+            <label class="check"><input type="checkbox" value="Adición y colocación de sonidos propios"> Adición de sonidos propios</label>
+            <label class="check"><input type="checkbox" value="Composición o modificación de melodía y armonía"> Melodía y armonía propias</label>
+            <label class="check"><input type="checkbox" value="Letra escrita por el autor"> Letra escrita por el autor</label>
+            <label class="check"><input type="checkbox" value="Interpretación vocal o instrumental"> Interpretación vocal/instrumental</label>
+          </div>
+
+          <h3 class="spaced">Evidencia de producción</h3>
+          <div class="form-grid">
+            <label>Sesión o proyecto DAW
+              <input id="certSession" placeholder="Ej.: Proyecto.als, sesión Ableton, versión 3">
+            </label>
+            <label>Licencias de modelos / plugins
+              <input id="certLicenses" placeholder="Ej.: ACE-Step Apache-2.0, sintetizador propio">
+            </label>
+          </div>
+          <p class="muted small">Guarda la sesión original y los stems junto al WAV exportado. Si usas modelos o samples de terceros, revisa su licencia antes de declarar la obra como propia.</p>
+
+          <h3 class="spaced">Notas del proceso creativo</h3>
+          <textarea id="certNotes" rows="3" placeholder="Describe qué decisiones tomaste: cambios de melodía, ediciones, versiones, referencias..."></textarea>
+
+          <h3 class="spaced">Declaración</h3>
+          <textarea id="certDeclaration" rows="3">Declaro que la información consignada es veraz y que las aportaciones creativas humanas descritas fueron realizadas por mí o por las personas acreditadas como coautoras.</textarea>
+
+          <div class="action-row">
+            <button id="btnCreateCertificate" class="btn primary">Certificar esta obra</button>
+            <span id="certStatus" class="muted small"></span>
+          </div>
+        </div>
+
+        <div>
+          <div class="card info-card">
+            <h3>Qué incluye tu certificado</h3>
+            <ul class="feature-list">
+              <li><strong>Huella SHA-256</strong> del archivo exportado: cualquier cambio invalida la coincidencia.</li>
+              <li><strong>Fecha y hora</strong> de registro y ficha de la obra.</li>
+              <li><strong>Aportaciones humanas</strong> declaradas, clave para obras asistidas por IA.</li>
+              <li><strong>Evidencia de producción</strong>: sesión DAW y licencias de modelos o plugins.</li>
+              <li><strong>Cadena de integridad</strong>: cada registro hereda la firma del anterior.</li>
+              <li><strong>Certificado imprimible</strong> y archivos JSON/TXT para guardar.</li>
+            </ul>
+          </div>
+
+          <div class="card warn-card">
+            <h3>Importante</h3>
+            <p>Este certificado es una prueba privada de fecha e integridad. No es un título oficial de propiedad intelectual ni sustituye el registro público de tu país. La protección de obras generadas con IA depende de la ley de cada jurisdicción y de la aportación creativa humana documentada.</p>
+            <button class="btn small-btn" id="btnAskRightsAgent">Consultar agente de derechos</button>
+          </div>
+
+          <div class="card" id="certResultCard">
+            <div class="empty-state small">
+              <p>El certificado aparecerá aquí cuando registres una obra.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="view-registro" class="view">
+      <div class="section-head">
+        <div>
+          <h1>Registro de obras</h1>
+          <p>Certificados guardados en este equipo. Verifica la integridad de cualquier archivo o abre su certificado imprimible.</p>
+        </div>
+        <div class="action-row">
+          <button class="btn" id="btnRefreshRegistry">Actualizar</button>
+          <button class="btn" id="btnVerifyUpload">Verificar un archivo…</button>
+          <input type="file" id="verifyInput" accept="audio/*,.wav" hidden>
+        </div>
+      </div>
+      <div id="registryList" class="registry-list">
+        <div class="empty-state"><p>Cargando registro…</p></div>
+      </div>
+      <p class="muted small">Los archivos se guardan en la carpeta <code>data/works</code> de este proyecto. Haz copia de seguridad de esa carpeta y de tus WAV originales.</p>
+    </section>
+  </main>
+</div>
+
+<div id="toast" class="toast hidden"></div>
+
+<div id="helpModal" class="modal hidden">
+  <div class="modal-card">
+    <header><h2>Cómo funciona</h2><button id="btnCloseHelp" class="icon-btn">×</button></header>
+    <div class="modal-body">
+      <h3>1. Genera o importa</h3>
+      <p>Usa <strong>Generar música</strong> para crear una base instrumental con pistas separadas, o importa tus propios WAV/MP3 al estudio. Todo se procesa en tu equipo.</p>
+      <h3>2. Edita</h3>
+      <p>Arrastra los bordes de un clip para recortar, el centro para moverlo. Ajusta volumen, fades y paneo en el inspector. Añade sonidos propios desde <strong>Añadir sonido</strong>.</p>
+      <h3>3. Exporta y certifica</h3>
+      <p>Exporta el WAV final y pulsa <strong>Certificar obra</strong>. Se calcula una huella SHA-256, se guarda el certificado y puedes imprimirlo o descargar el JSON.</p>
+      <h3>4. Refuerza el registro</h3>
+      <p>El certificado prueba fecha e integridad, no sustituye el registro oficial. Inscribe la obra en el registro de propiedad intelectual de tu país y guarda copia del WAV original.</p>
+      <p class="muted small">Atajos: Espacio reproduce/pausa · Supr elimina el clip seleccionado · Ctrl/Cmd+S exporta.</p>
+    </div>
+  </div>
+</div>
+
+<script type="module" src="/js/app.js"></script>
+</body>
+</html>

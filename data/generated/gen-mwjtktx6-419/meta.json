@@ -1,0 +1,272 @@
+{
+  "id": "gen-mwjtktx6-419",
+  "title": "Rock / Banda D minor #3453",
+  "genre": "rock",
+  "genreLabel": "Rock / Banda",
+  "mood": "auto",
+  "bpm": 120,
+  "key": "D minor",
+  "mode": "minor",
+  "bars": 48,
+  "seed": 842243453,
+  "duration": 98.5,
+  "musicalDuration": 96,
+  "sampleRate": 44100,
+  "createdAt": "2026-11-16T22:13:02.970Z",
+  "prompt": "metalcore",
+  "detected": {
+    "genre": "rock",
+    "mood": null,
+    "tempo": null,
+    "mode": null
+  },
+  "spec": {
+    "form": [
+      {
+        "name": "intro",
+        "label": "Intro",
+        "bars": 4,
+        "startBar": 0,
+        "energy": 0.32,
+        "progression": [
+          "Dm",
+          "Bb",
+          "F",
+          "C"
+        ],
+        "progressionRomans": [
+          "i",
+          "VI",
+          "III",
+          "VII"
+        ]
+      },
+      {
+        "name": "verso",
+        "label": "Verso",
+        "bars": 8,
+        "startBar": 4,
+        "energy": 0.58,
+        "progression": [
+          "Dm",
+          "Bb",
+          "F",
+          "C"
+        ],
+        "progressionRomans": [
+          "i",
+          "VI",
+          "III",
+          "VII"
+        ]
+      },
+      {
+        "name": "coro",
+        "label": "Coro",
+        "bars": 8,
+        "startBar": 12,
+        "energy": 0.94,
+        "progression": [
+          "Dm",
+          "Gm",
+          "Bb",
+          "C"
+        ],
+        "progressionRomans": [
+          "i",
+          "iv",
+          "VI",
+          "VII"
+        ]
+      },
+      {
+        "name": "verso2",
+        "label": "Verso 2",
+        "bars": 8,
+        "startBar": 20,
+        "energy": 0.7,
+        "progression": [
+          "Dm",
+          "Bb",
+          "F",
+          "C"
+        ],
+        "progressionRomans": [
+          "i",
+          "VI",
+          "III",
+          "VII"
+        ]
+      },
+      {
+        "name": "coro2",
+        "label": "Coro final",
+        "bars": 8,
+        "startBar": 28,
+        "energy": 1,
+        "progression": [
+          "Dm",
+          "Gm",
+          "Bb",
+          "C"
+        ],
+        "progressionRomans": [
+          "i",
+          "iv",
+          "VI",
+          "VII"
+        ]
+      },
+      {
+        "name": "puente",
+        "label": "Puente",
+        "bars": 4,
+        "startBar": 36,
+        "energy": 0.42,
+        "progression": [
+          "Dm",
+          "Bb",
+          "F",
+          "C"
+        ],
+        "progressionRomans": [
+          "i",
+          "VI",
+          "III",
+          "VII"
+        ]
+      },
+      {
+        "name": "coro2",
+        "label": "Coro final",
+        "bars": 8,
+        "startBar": 40,
+        "energy": 1,
+        "progression": [
+          "Dm",
+          "Gm",
+          "Bb",
+          "C"
+        ],
+        "progressionRomans": [
+          "i",
+          "iv",
+          "VI",
+          "VII"
+        ]
+      }
+    ],
+    "key": "D minor",
+    "bpm": 120,
+    "bars": 48,
+    "meter": "4/4",
+    "progression": {
+      "versos": [
+        "Dm",
+        "Bb",
+        "F",
+        "C"
+      ],
+      "versosRoman": [
+        "i",
+        "VI",
+        "III",
+        "VII"
+      ],
+      "coro": [
+        "Dm",
+        "Gm",
+        "Bb",
+        "C"
+      ],
+      "coroRoman": [
+        "i",
+        "iv",
+        "VI",
+        "VII"
+      ],
+      "puente": [
+        "Dm",
+        "Bb",
+        "F",
+        "C"
+      ],
+      "puenteRoman": [
+        "i",
+        "VI",
+        "III",
+        "VII"
+      ]
+    },
+    "groove": {
+      "feel": "recto",
+      "swing": 0,
+      "pushPull": [
+        {
+          "part": "bajo",
+          "offset_ms": -6,
+          "note": "levemente adelantado"
+        },
+        {
+          "part": "melodia",
+          "offset_ms": 12,
+          "note": "levemente atrasada (laid-back)"
+        },
+        {
+          "part": "bateria",
+          "offset_ms": 0,
+          "note": "sobre la rejilla"
+        }
+      ]
+    },
+    "layers": [
+      {
+        "name": "Bateria",
+        "role": "rock",
+        "entry": "verso",
+        "exit": "outro"
+      },
+      {
+        "name": "Bajo",
+        "role": "octave",
+        "entry": "intro",
+        "exit": "outro"
+      },
+      {
+        "name": "Armonia",
+        "role": "power",
+        "entry": "intro",
+        "exit": "outro"
+      },
+      {
+        "name": "Melodia",
+        "role": "lead",
+        "entry": "verso",
+        "exit": "outro"
+      }
+    ],
+    "mix": {
+      "pan": {
+        "drums": "centro",
+        "bass": "centro",
+        "harmony": "15% izquierda",
+        "melody": "15% derecha"
+      },
+      "tips": [
+        "La melodia va 12 ms atrasada para sonar humana.",
+        "El bajo esta 6 ms adelantado para empujar el groove.",
+        "Deja aire en los primeros compases: la entrada por capas hace que el coro crezca."
+      ]
+    },
+    "generator": "musicderechos-local-v1"
+  },
+  "authorsNote": "Generado localmente en tu equipo. No se envio audio a ningun servicio externo.",
+  "files": {
+    "mix": "/media/generated/gen-mwjtktx6-419/mezcla.wav",
+    "drums": "/media/generated/gen-mwjtktx6-419/bateria.wav",
+    "bass": "/media/generated/gen-mwjtktx6-419/bajo.wav",
+    "harmony": "/media/generated/gen-mwjtktx6-419/armonia.wav",
+    "melody": "/media/generated/gen-mwjtktx6-419/melodia.wav",
+    "fx": "/media/generated/gen-mwjtktx6-419/efectos.wav"
+  }
+}

@@ -1,0 +1,37 @@
+CERTIFICADO DE AUTORIA — MUSICDERECHOS STUDIO
+Folio: MD-20261116-98C39E02
+Fecha de registro: 2026-11-16T18:55:58.718Z
+Titulo: Beneath_the_Iron_Sky
+Autor: olider
+Documento: 1113660180
+Pais: colombia
+Correo: olinasdj@gmail.com
+Licencia: Todos los derechos reservados
+Duracion: 183.34 s
+Formato: WAV 44100 Hz 16 bits 2 canales
+
+HUELLA SHA-256
+98c39e02c3cb583752de81e4064d9fd819501c25bb0f3a50e1362bdb1b62ca01
+
+APORTACIONES HUMANAS
+- Idea, concepto y dirección creativa
+- Selección de género, tonalidad, tempo y estado de ánimo
+- Edición de la estructura: recortes, silencios y repeticiones
+- Ajustes de mezcla: volumen, paneo, fades y efectos
+
+COAUTORES
+- olider naravez
+
+GENERACION
+Motor: edicion-manual
+Parametros: {}
+IA externa: No
+
+DECLARACION
+Declaro que la información consignada es veraz y que las aportaciones creativas humanas descritas fueron realizadas por mí o por las personas acreditadas como coautoras.
+
+INTEGRIDAD EN CADENA
+Registro anterior: GENESIS
+Firma del registro: d7ef95fc65da161c0e151e14c587a1b5ba14a19ab98641c0248735ab213e4f5d
+
+Este certificado acredita fecha e integridad, no sustituye el registro oficial de propiedad intelectual.

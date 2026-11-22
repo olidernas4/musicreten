@@ -1,0 +1,24 @@
+{
+  "name": "musicderechos",
+  "version": "1.0.0",
+  "description": "Estudio local de musica con IA, editor de audio y certificados de autoria",
+  "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "test": "node test/smoke.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "keywords": [
+    "musica",
+    "ia",
+    "derechos-de-autor",
+    "editor-de-audio",
+    "wav"
+  ],
+  "license": "UNLICENSED",
+  "private": true
+}
