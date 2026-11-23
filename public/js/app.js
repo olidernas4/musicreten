@@ -165,12 +165,232 @@ function setStylePromptEnabled(enabled) {
 }
 
 function isMetalcoreStyle(text) {
-  return /\b(?:metalcore|metal[\s-]+core|post[\s-]+hardcore|deathcore)\b/i.test(text);
+  return /\b(?:metalcore|metal[\s-]+core|post[\s-]+hardcore|deathcore|djent|breakdown|heavy metal|thrash)\b/i.test(text);
+}
+
+function bindSunoUI() {
+  // Accordion collapse/expand
+  document.querySelectorAll('[data-accordion]').forEach((header) => {
+    header.addEventListener('click', () => {
+      const cardId = header.dataset.accordion;
+      const card = $(cardId);
+      if (card) card.classList.toggle('collapsed');
+    });
+  });
+
+  // Segmented Mode: Sencillo vs Avanzado
+  const btnSimple = $('sunoModeSimple');
+  const btnAdv = $('sunoModeAdvanced');
+  if (btnSimple && btnAdv) {
+    btnSimple.addEventListener('click', () => {
+      btnSimple.classList.add('active');
+      btnAdv.classList.remove('active');
+      $('cardLetra')?.classList.add('collapsed');
+      $('cardMasOpciones')?.classList.add('collapsed');
+    });
+    btnAdv.addEventListener('click', () => {
+      btnAdv.classList.add('active');
+      btnSimple.classList.remove('active');
+      $('cardLetra')?.classList.remove('collapsed');
+      $('cardMasOpciones')?.classList.remove('collapsed');
+    });
+  }
+
+  // Quick Action Chips: + Audio, + Voice, + Inspiración
+  $('chipAddAudio')?.addEventListener('click', () => {
+    setView('biblioteca');
+    toast('Explora tu biblioteca de Ableton, EZdrummer 3 y SoundFonts.', 'info');
+  });
+  $('chipAddVoice')?.addEventListener('click', () => {
+    toast('Escribe tu letra en la tarjeta de Letra para estructurar las secciones vocales.', 'info');
+  });
+  $('chipInspiration')?.addEventListener('click', () => {
+    const inspirations = [
+      'metalcore, heavy breakdown, driving drums, distorted guitar, raw bass',
+      'dark ethereal, bittersweet, girl vocal, lofi hip hop, heavy 808 bass',
+      'post-hardcore, drop D riff, acoustic drums, energetic chorus',
+      'lofi chillout, rhodes piano, vinyl dust, deep warm electric bass',
+      'melodic metalcore, guitar leads, breakdown, acoustic rock outro'
+    ];
+    const picked = inspirations[Math.floor(Math.random() * inspirations.length)];
+    $('genPrompt').value = picked;
+    updateStylePromptStatus();
+    toast(`Inspiración cargada: ${picked.split(',')[0]}`, 'ok');
+  });
+
+  // Style Tag Chips
+  const tagScroller = $('sunoTagsScroller');
+  if (tagScroller) {
+    tagScroller.querySelectorAll('.suno-tag').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const tag = btn.dataset.tag;
+        const input = $('genPrompt');
+        let current = input.value.trim();
+        const tags = current ? current.split(',').map(s => s.trim()).filter(Boolean) : [];
+        const index = tags.findIndex(t => t.toLowerCase() === tag.toLowerCase());
+        if (index >= 0) {
+          tags.splice(index, 1);
+          btn.classList.remove('active');
+        } else {
+          tags.push(tag);
+          btn.classList.add('active');
+        }
+        input.value = tags.join(', ');
+        if (!useStylePrompt) setStylePromptEnabled(true);
+        else updateStylePromptStatus();
+      });
+    });
+  }
+
+  // Magic Wand & Refresh Buttons
+  $('btnMagicWand')?.addEventListener('click', () => {
+    const magicStyles = [
+      'metalcore, heavy breakdown, driving drums, distorted guitar, raw electric bass',
+      'dark ethereal, bittersweet, girl vocal, lofi hip hop, heavy 808 bass',
+      'post-hardcore, aggressive riff, blast beats, dynamic verse',
+      'acoustic rock, fingerpicked guitar, live acoustic room drums, warm bass',
+      'modern metalcore, djent groove, 145 bpm, punchy acoustic drums'
+    ];
+    const pick = magicStyles[Math.floor(Math.random() * magicStyles.length)];
+    $('genPrompt').value = pick;
+    if (!useStylePrompt) setStylePromptEnabled(true);
+    else updateStylePromptStatus();
+    toast('¡Estilo mágico aplicado!', 'ok');
+  });
+
+  $('btnRandomStyle')?.addEventListener('click', () => {
+    const styles = [
+      'metalcore, heavy breakdown',
+      'bittersweet, girl vocal, lofi hip hop',
+      'acoustic rock, driving drums, electric bass',
+      'melodic post-hardcore, fast drums',
+      'dark ethereal, heavy bass, ambient keys'
+    ];
+    $('genPrompt').value = styles[Math.floor(Math.random() * styles.length)];
+    if (!useStylePrompt) setStylePromptEnabled(true);
+    else updateStylePromptStatus();
+  });
+
+  // Pink Sliders with Output Updates
+  const sliderR = $('sliderRareza');
+  if (sliderR) {
+    sliderR.addEventListener('input', () => {
+      $('valRareza').textContent = `${sliderR.value}%`;
+    });
+  }
+  const sliderI = $('sliderInfluencia');
+  if (sliderI) {
+    sliderI.addEventListener('input', () => {
+      $('valInfluencia').textContent = `${sliderI.value}%`;
+    });
+  }
+  const sliderV = $('sliderVariedad');
+  if (sliderV) {
+    sliderV.addEventListener('input', () => {
+      const v = Number(sliderV.value);
+      $('valVariedad').textContent = v < 35 ? 'Baja' : v <= 70 ? 'Normal' : 'Alta';
+    });
+  }
+  const sliderD = $('genDurationSlider');
+  if (sliderD) {
+    sliderD.addEventListener('input', () => {
+      $('valDuration').textContent = `${sliderD.value} s`;
+      if ($('genDuration')) $('genDuration').value = String(sliderD.value);
+    });
+  }
+
+  // Toggle Groups (Género vocal, Duración, Modo Max, Personalizar)
+  document.querySelectorAll('.suno-toggle-group').forEach((group) => {
+    group.querySelectorAll('.suno-btn-toggle').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        group.querySelectorAll('.suno-btn-toggle').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        if (group.id === 'groupDuration') {
+          const isCustom = btn.dataset.val === 'custom';
+          const box = $('customDurationBox');
+          if (box) box.classList.toggle('hidden', !isCustom);
+        }
+      });
+    });
+  });
+
+  // Sparkle Button (AI Lyrics Assistant)
+  $('btnGenerateLyrics')?.addEventListener('click', async () => {
+    const style = $('genPrompt').value.trim() || 'metalcore';
+    const lyricsBox = $('sunoLyrics');
+    const isMetal = /metal|rock|core/i.test(style);
+    if (isMetal) {
+      lyricsBox.value = `[Verse]
+Gritos callados rompen el cristal
+La tormenta arde en el temporal
+Ya no hay retorno, no queda piedad
+La fuerza renace en la oscuridad
+
+[Chorus]
+Bajo el fuego no caeremos jamás
+Rompemos las cadenas, cruzamos el compás
+Siente la fuerza que hace temblar
+La tierra entera al respirar
+
+[Breakdown]
+¡Despierta!
+¡Rompe todo!
+
+[Outro]
+Cicatrices de metal
+Eternos hasta el final`;
+    } else {
+      lyricsBox.value = `[Verse]
+Luces tenues sobre la ciudad
+Un recuerdo vuelve sin avisar
+Gotas lentas en la habitación
+Ecos suaves en una canción
+
+[Chorus]
+Y si el tiempo vuelve a pasar
+Nuestras voces van a quedar
+Sabor agridulce en la noche gris
+Cántalo otra vez para ser feliz
+
+[Outro]
+Bajo el cielo de cristal
+Una noche más sin mirar atrás`;
+    }
+    toast('¡Letra generada y estructurada con éxito!', 'ok');
+  });
+
+  // Format Lyrics Action
+  $('btnFormatLyrics')?.addEventListener('click', () => {
+    const lyricsBox = $('sunoLyrics');
+    if (!lyricsBox.value.includes('[Verse]')) {
+      lyricsBox.value = `[Verse]\n${lyricsBox.value}\n\n[Chorus]\nTu coro aquí\n\n[Outro]\nFinal de la obra`;
+    }
+    toast('Estructura [Verse] / [Chorus] insertada.', 'info');
+  });
+
+  // Reset Options Action
+  $('btnResetOptions')?.addEventListener('click', () => {
+    if ($('sliderRareza')) $('sliderRareza').value = 50;
+    if ($('valRareza')) $('valRareza').textContent = '50%';
+    if ($('sliderInfluencia')) $('sliderInfluencia').value = 50;
+    if ($('valInfluencia')) $('valInfluencia').textContent = '50%';
+    if ($('sliderVariedad')) $('sliderVariedad').value = 50;
+    if ($('valVariedad')) $('valVariedad').textContent = 'Normal';
+    if ($('drumKitSelect')) $('drumKitSelect').value = '';
+    if ($('drumGrooveSelect')) $('drumGrooveSelect').value = 'auto';
+    toast('Opciones restablecidas a valores estándar.', 'info');
+  });
+
+  // Workspace Selection Action
+  $('btnSelectWorkspace')?.addEventListener('click', () => {
+    setView('biblioteca');
+    toast('Selecciona carpetas en la Biblioteca.', 'info');
+  });
 }
 
 function bindGeneration() {
   $('btnGenerate').addEventListener('click', generateSong);
-  $('btnToggleStyle').addEventListener('click', () => setStylePromptEnabled(!useStylePrompt));
+  $('btnToggleStyle')?.addEventListener('click', () => setStylePromptEnabled(!useStylePrompt));
   $('genPrompt').addEventListener('input', () => {
     if ($('genPrompt').value.trim() && !useStylePrompt) {
       setStylePromptEnabled(true);
@@ -178,7 +398,7 @@ function bindGeneration() {
       updateStylePromptStatus();
     }
   });
-  $('styleSuggestions').addEventListener('click', (event) => {
+  $('styleSuggestions')?.addEventListener('click', (event) => {
     const button = event.target.closest('button[data-style-tag]');
     if (!button) return;
     const prompt = $('genPrompt');
@@ -201,9 +421,10 @@ function bindGeneration() {
   $('genPrompt').addEventListener('keydown', (event) => {
     if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') generateSong();
   });
-  $('genSeed').addEventListener('keydown', (event) => {
+  $('genSeed')?.addEventListener('keydown', (event) => {
     if (event.key === 'Enter') generateSong();
   });
+  bindSunoUI();
 }
 
 async function separateSong() {
@@ -383,6 +604,27 @@ function renderSeparationProgress(percent, label, detail, active = false) {
   $('separationResult').innerHTML = renderSeparationProgressMarkup(percent, label, detail, active);
 }
 
+function activeToggleValue(groupId, fallback = '') {
+  const active = document.querySelector(`#${groupId} .suno-btn-toggle.active`);
+  return active ? active.dataset.val : fallback;
+}
+
+async function loadDrumCatalog() {
+  const kitSelect = $('drumKitSelect');
+  if (!kitSelect) return;
+  try {
+    const data = await readJsonResponse(await fetch('/api/drums/catalog', { cache: 'no-store' }));
+    const drums = data.drums || {};
+    const kits = drums.kits || [];
+    kitSelect.innerHTML = `<option value="">Kit: automático</option>${kits
+      .map((kit) => `<option value="${esc(kit)}">${esc(kit)}</option>`).join('')}`;
+    const grooveOption = $('drumGrooveSelect')?.querySelector('option[value="auto"]');
+    if (grooveOption && drums.total) grooveOption.textContent = `Grooves: auto (${drums.total})`;
+  } catch {
+    kitSelect.innerHTML = '<option value="">Kit: automático</option>';
+  }
+}
+
 async function generateSong() {
   const button = $('btnGenerate');
   const result = $('genResult');
@@ -394,7 +636,7 @@ async function generateSong() {
   const useLibraryMetalcore = useLibrary && metalcoreStyle;
   const useSynthGuitar = !useLibrary && metalcoreStyle;
   button.disabled = true;
-  button.textContent = 'Componiendo…';
+  button.innerHTML = '<span class="crear-icon">⏳</span><span class="crear-label">Componiendo…</span>';
   const progressDetail = useLibraryMetalcore
     ? 'Buscando un loop de guitarra y un kit de batería acústica en tu biblioteca…'
     : useLibrary
@@ -404,21 +646,33 @@ async function generateSong() {
         : 'Generando armonía, melodía, groove y mezcla por stems…';
   result.innerHTML = `<div class="empty-state"><div class="empty-icon">✦</div><h3>Componiendo tu canción</h3><p>${progressDetail}</p></div>`;
 
-  const seedValue = $('genSeed').value.trim();
+  const seedValue = $('genSeed')?.value.trim() || '';
+  const customTitle = $('sunoSongTitle')?.value.trim() || '';
   const payload = {
     prompt: useStylePrompt ? styleText : '',
     useStyle: useStylePrompt,
-    genre: $('genGenre').value,
-    mood: $('genMood').value,
-    key: $('genKey').value,
-    mode: $('genMode').value,
-    bpm: Number($('genBpm').value) || undefined,
-    duration: Number($('genDuration').value) || 90,
-    seed: seedValue === '' ? '' : Number(seedValue)
+    genre: $('genGenre')?.value || 'auto',
+    mood: $('genMood')?.value || 'auto',
+    key: $('genKey')?.value || 'auto',
+    mode: $('genMode')?.value || 'auto',
+    bpm: Number($('genBpm')?.value) || undefined,
+    duration: Number($('genDurationSlider')?.value || $('genDuration')?.value || 90),
+    seed: seedValue === '' ? '' : Number(seedValue),
+    rarity: Number($('sliderRareza')?.value ?? 50),
+    influence: Number($('sliderInfluencia')?.value ?? 50),
+    variety: Number($('sliderVariedad')?.value ?? 50),
+    lyrics: $('sunoLyrics')?.value.trim() || '',
+    vocalGender: activeToggleValue('groupVocalGender', 'instrumental'),
+    drumKit: $('drumKitSelect')?.value || '',
+    useGrooves: activeToggleValue('drumGrooveSelect', 'auto') !== 'off'
   };
+  const grooveMode = activeToggleValue('drumGrooveSelect', 'auto');
+  if (grooveMode !== 'auto' && grooveMode !== 'off') payload.grooveFeel = grooveMode;
+  if (customTitle) payload.title = customTitle;
 
   try {
-    const res = await fetch(useLibrary ? '/api/compose/library' : '/api/generate', {
+    const useRealLibrary = true;
+    const res = await fetch(useRealLibrary ? '/api/compose/library' : '/api/generate', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
@@ -431,12 +685,13 @@ async function generateSong() {
       const guitar = (data.song.usedAssets || []).find((asset) => asset.roles.includes('guitar'));
       const notice = document.createElement('p');
       notice.className = 'generation-notice';
-      notice.textContent = `Metalcore con sonidos de tu biblioteca: ${guitar ? guitar.name : 'loop de guitarra'} y muestras de batería. La guitarra es un loop grabado, no una interpretación nueva nota por nota.`;
+      notice.textContent = `Metalcore con instrumentos reales de tu biblioteca: ${guitar ? guitar.name : 'guitarra'} y batería real.`;
       result.prepend(notice);
-    } else if (useSynthGuitar) {
+    }
+    if (payload.vocalGender !== 'instrumental') {
       const notice = document.createElement('p');
       notice.className = 'generation-notice';
-      notice.textContent = 'Metalcore generado con guitarra sintetizada localmente. Para usar tus grabaciones, activa «Usar sonidos de mi biblioteca».';
+      notice.textContent = 'La voz todavía no se sintetiza: la letra y el género vocal se guardan en el proyecto para trabajarlos en un DAW.';
       result.prepend(notice);
     }
     renderSpec(data.song);
@@ -453,7 +708,7 @@ async function generateSong() {
     toast(err.message, 'err');
   } finally {
     button.disabled = false;
-    button.textContent = 'Generar canción';
+    button.innerHTML = '<span class="crear-icon">🎵</span><span class="crear-label">Crear</span>';
   }
 }
 
@@ -592,144 +847,6 @@ function renderSpec(song) {
     <h3 class="spaced">Decisiones de mezcla</h3>
     <ul class="feature-list">${tips.map((t) => `<li>${esc(t)}</li>`).join('')}</ul>
   `;
-}
-
-/* ---------------- Agents ---------------- */
-
-function bindAgents() {
-  document.querySelectorAll('.agent-card').forEach((card) => {
-    card.querySelector('.agent-run').addEventListener('click', () => runAgent(card));
-  });
-  $('btnAskRightsAgent').addEventListener('click', () => {
-    setView('agentes');
-    const card = document.querySelector('.agent-card[data-agent="derechos"]');
-    if (!card) return;
-    const profile = loadProfile();
-    const select = card.querySelector('[data-field="country"]');
-    if (profile.country && select) {
-      const key = countryKey(profile.country);
-      if (key) select.value = key;
-    }
-    setTimeout(() => runAgent(card), 120);
-  });
-}
-
-function countryKey(country) {
-  const text = String(country).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-  if (/espana|spain/.test(text)) return 'espana';
-  if (/mexico/.test(text)) return 'mexico';
-  if (/argentina/.test(text)) return 'argentina';
-  if (/colombia/.test(text)) return 'colombia';
-  if (/chile/.test(text)) return 'chile';
-  if (/peru/.test(text)) return 'peru';
-  if (/estados unidos|usa|united states/.test(text)) return 'estados_unidos';
-  return 'otro';
-}
-
-async function runAgent(card) {
-  const agent = card.dataset.agent;
-  const button = card.querySelector('.agent-run');
-  const output = card.querySelector('.agent-output');
-  button.disabled = true;
-  const original = button.textContent;
-  button.textContent = 'Consultando…';
-  output.classList.add('visible');
-  output.innerHTML = '<p class="muted small">El agente está analizando…</p>';
-
-  const payload = {};
-  card.querySelectorAll('[data-field]').forEach((field) => {
-    let value = field.value;
-    if (field.dataset.field === 'usesAI') value = value === 'yes';
-    if (field.type === 'number') value = Number(value);
-    payload[field.dataset.field] = value;
-  });
-  if (agent === 'mezcla') {
-    payload.tracks = getProjectSummary().tracks;
-    payload.title = getProjectTitle();
-  }
-  if (agent === 'derechos') {
-    payload.humanContributions = humanContributions();
-  }
-
-  try {
-    const res = await fetch('/api/agent', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ agent, payload })
-    });
-    const data = await res.json();
-    if (!res.ok || !data.ok) throw new Error(data.error || 'El agente no pudo responder');
-    renderAgentOutput(card, data.result);
-  } catch (err) {
-    output.innerHTML = `<p style="color:var(--danger)">${esc(err.message)}</p>`;
-  } finally {
-    button.disabled = false;
-    button.textContent = original;
-  }
-}
-
-function renderAgentOutput(card, result) {
-  const output = card.querySelector('.agent-output');
-  let html = `<div class="agent-summary">${esc(result.summary || '')}</div>`;
-  if (Array.isArray(result.options) && result.options.length) {
-    html += result.options.map((option) => `
-      <div class="progression-option">
-        <strong>${esc(option.name)}: ${esc(option.chords.join(' – '))}</strong>
-        <div class="muted small">${esc(option.romans.join(' – '))}</div>
-        <span>${esc(option.note)}</span>
-      </div>
-    `).join('');
-  }
-  if (Array.isArray(result.findings) && result.findings.length) {
-    html += '<h4>Hallazgos</h4>' + result.findings.map((f) => `
-      <div class="finding ${esc(f.level)}"><span class="dot"></span><span>${esc(f.text)}</span></div>
-    `).join('');
-  }
-  if (Array.isArray(result.sections)) {
-    for (const section of result.sections) {
-      html += `<h4>${esc(section.title)}</h4><ul>${section.items.map((item) => `<li>${esc(item)}</li>`).join('')}</ul>`;
-    }
-  }
-  if (result.apply) {
-    html += '<div class="agent-apply"><button class="btn small-btn" data-apply-agent="1">Aplicar al generador</button></div>';
-  }
-  if (result.agent === 'derechos') {
-    html += '<div class="agent-apply"><button class="btn small-btn" data-go-rights="1">Ir a certificar</button></div>';
-  }
-  output.innerHTML = html;
-  const applyBtn = output.querySelector('[data-apply-agent]');
-  if (applyBtn) applyBtn.addEventListener('click', () => applyAgent(result));
-  const goBtn = output.querySelector('[data-go-rights]');
-  if (goBtn) goBtn.addEventListener('click', () => setView('derechos'));
-}
-
-function applyAgent(result) {
-  const apply = result.apply || {};
-  if (apply.genre) $('genGenre').value = apply.genre;
-  if (apply.mood) $('genMood').value = apply.mood;
-  if (apply.bpm) $('genBpm').value = apply.bpm;
-  if (apply.mode && apply.mode !== 'auto') $('genMode').value = apply.mode;
-  if (apply.key && apply.key !== 'auto') {
-    const match = [...$('genKey').options].find((option) => option.value.toLowerCase() === String(apply.key).toLowerCase());
-    $('genKey').value = match ? match.value : 'auto';
-  }
-  if (result.agent === 'productor' && apply.genre) {
-    const promptIdeas = {
-      lofi: 'Una canción lo-fi tranquila con piano y vinilo',
-      pop: 'Una canción pop luminosa con coro pegadizo',
-      electronic: 'Una pista electrónica de club con build y drop',
-      cinematic: 'Un tema cinematográfico épico con cuerdas',
-      trap: 'Un beat de trap oscuro con 808',
-      rock: 'Un tema de rock con guitarras y batería en vivo',
-      acustico: 'Una balada acústica íntima',
-      jazz: 'Un tema jazz suave con Rhodes'
-    };
-    if (!$('genPrompt').value.trim() && promptIdeas[apply.genre]) $('genPrompt').value = promptIdeas[apply.genre];
-  }
-  setView('generar');
-  $('btnGenerate').classList.add('flash');
-  setTimeout(() => $('btnGenerate').classList.remove('flash'), 700);
-  toast('Parámetros del agente aplicados al generador.', 'ok');
 }
 
 /* ---------------- Library ---------------- */
@@ -1029,22 +1146,22 @@ async function runScan(rootId) {
 async function detectLibrary() {
   if (state.library.busy) return;
   setLibraryBusy(true);
-  setLibraryStatus('Buscando instalaciones de Ableton…');
+  setLibraryStatus('Buscando librerías de Ableton Live, EZdrummer 3 y Packs…');
   try {
     const data = await readJsonResponse(await fetch('/api/assets/detect', { method: 'POST' }));
     await loadLibraryRoots({ autoDetect: false });
     const added = (data.added || []).length;
     if (added) {
-      toast(`${added} carpeta${added > 1 ? 's' : ''} de Ableton añadida${added > 1 ? 's' : ''}.`, 'ok');
+      toast(`${added} carpeta${added > 1 ? 's' : ''} de Ableton, EZdrummer y Packs añadida${added > 1 ? 's' : ''}.`, 'ok');
       setLibraryBusy(false);
       await runScan();
     } else {
       setLibraryStatus('No se encontraron carpetas nuevas. Puedes añadir una ruta manualmente.');
-      toast('No se encontraron carpetas nuevas de Ableton.', 'info');
+      toast('Carpetas de librerías ya registradas.', 'info');
     }
   } catch (err) {
-    setLibraryStatus(err.message || 'No se pudo detectar Ableton.');
-    toast(err.message || 'No se pudo detectar Ableton.', 'err');
+    setLibraryStatus(err.message || 'No se pudieron detectar las librerías.');
+    toast(err.message || 'No se pudieron detectar las librerías.', 'err');
   } finally {
     setLibraryBusy(false);
   }
@@ -1451,7 +1568,6 @@ function init() {
   bindProfile();
   bindGeneration();
   bindProject();
-  bindAgents();
   bindCertificate();
   bindRegistry();
   bindHelp();
@@ -1469,6 +1585,7 @@ function init() {
   });
   $('certTitle').value = getProjectTitle();
   loadRegistry();
+  loadDrumCatalog();
 }
 
 document.addEventListener('DOMContentLoaded', init);

@@ -1,0 +1,2 @@
+- [Grabacion_Pantalla: audio y teloprompter](grabacion-pantalla-audio-pendientes.md) — alias duplicados de mic, eco, etiqueta «Sin audio»; mejoras pendientes y prompter por trabajar
+- [BikeShop: rehacer BikeOnline en repo nuevo](bikeshop-mejora-decisiones.md) — decisiones, hallazgos graves de la auditoría y fases acordadas (bikeshop.onlydevelop.cloud, TypeScript, pagos manuales + Wompi)

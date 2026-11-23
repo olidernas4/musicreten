@@ -31,9 +31,6 @@
       <button class="nav-item" data-view="biblioteca">
         <span class="nav-ico">▦</span> Biblioteca
       </button>
-      <button class="nav-item" data-view="agentes">
-        <span class="nav-ico">◆</span> Agentes especiales
-      </button>
       <button class="nav-item" data-view="derechos">
         <span class="nav-ico">§</span> Derechos y certificado
       </button>
@@ -135,137 +132,359 @@
     </section>
 
     <section id="view-generar" class="view">
-      <div class="section-head">
-        <div>
-          <h1>Generar música local</h1>
-          <p>Escribe el género o estilo que quieres. El motor local todavía no genera voces.</p>
-        </div>
-      </div>
+      <div class="suno-studio-wrap">
+        <!-- Columna Izquierda: Creador estilo Suno -->
+        <div class="suno-creator-col">
+          <!-- Top Bar: Segmented Switch + Model Dropdown -->
+          <div class="suno-header-bar">
+            <div class="suno-mode-segmented">
+              <button type="button" class="suno-mode-btn" id="sunoModeSimple">Sencillo</button>
+              <button type="button" class="suno-mode-btn active" id="sunoModeAdvanced">Avanzado</button>
+            </div>
+            <div class="suno-model-picker">
+              <select id="sunoModelSelect" class="suno-select-pill">
+                <option value="v6-mini" selected>v6-mini ▾</option>
+                <option value="v6-pro">v6-pro ▾</option>
+                <option value="ableton-ezdrummer">Ableton + EZdrummer 3 ▾</option>
+              </select>
+            </div>
+          </div>
 
-      <div class="grid-2">
-        <div class="card">
-          <div class="style-prompt-head">
-            <h2>Estilos</h2>
-            <button id="btnToggleStyle" class="btn small-btn style-toggle is-on" type="button" aria-pressed="true">Usar estilo: Sí</button>
+          <!-- Quick Action Buttons: + Audio, + Voice, + Inspiración -->
+          <div class="suno-quick-actions">
+            <button type="button" class="suno-action-chip" id="chipAddAudio"><span class="chip-plus">+</span> Audio</button>
+            <button type="button" class="suno-action-chip" id="chipAddVoice"><span class="chip-plus">+</span> Voice</button>
+            <button type="button" class="suno-action-chip" id="chipInspiration"><span class="chip-plus">+</span> Inspiración</button>
           </div>
-          <textarea id="genPrompt" rows="3" aria-label="Estilos y géneros musicales" placeholder="bachata urbana, ambient dub techno, casio core, classique, 2020s"></textarea>
-          <div class="style-suggestions" id="styleSuggestions" aria-label="Sugerencias de estilos">
-            <span class="muted small">Añadir:</span>
-            <button type="button" class="style-suggestion" data-style-tag="bachata urbana">bachata urbana</button>
-            <button type="button" class="style-suggestion" data-style-tag="ambient dub techno">ambient dub techno</button>
-            <button type="button" class="style-suggestion" data-style-tag="casio core">casio core</button>
-            <button type="button" class="style-suggestion" data-style-tag="classique">classique</button>
-            <button type="button" class="style-suggestion" data-style-tag="2020s">2020s</button>
+
+          <!-- Card 1: Letra (Lyrics) -->
+          <div class="suno-card suno-accordion" id="cardLetra">
+            <div class="suno-card-header" data-accordion="cardLetra">
+              <div class="suno-header-left">
+                <span class="suno-arrow">∨</span>
+                <span class="suno-title">Letra</span>
+              </div>
+              <div class="suno-tools" onclick="event.stopPropagation()">
+                <button type="button" class="suno-tool-btn" id="btnUndoLyrics" title="Deshacer">↩</button>
+                <button type="button" class="suno-tool-btn" id="btnRedoLyrics" title="Rehacer">↪</button>
+                <button type="button" class="suno-tool-btn" id="btnFormatLyrics" title="Añadir [Verse] / [Chorus]">✏</button>
+                <button type="button" class="suno-tool-btn" id="btnAlignLyrics" title="Estructura">|||\</button>
+                <button type="button" class="suno-tool-btn" id="btnExpandLyrics" title="Expandir">⤢</button>
+              </div>
+            </div>
+            <div class="suno-card-body">
+              <textarea id="sunoLyrics" class="suno-lyrics-input" rows="11" spellcheck="false" placeholder="[Verse]
+Escribe tu letra aquí, una línea a la vez
+Cada línea que agregues es una línea que cantaremos
+Marca cada parte entre corchetes, como los que ves
+Una estrofa cuenta la historia, un coro se repite
+
+[Chorus]
+Los géneros y estados de ánimo van en Estilos
+Déjalo vacío para un instrumental
+O llénalo con cada palabra que sientas
+Y cántalo otra vez, y otra vez
+
+[Outro]
+Pega tu propia letra o empieza desde cero"></textarea>
+              <div class="suno-sparkle-center">
+                <button type="button" class="suno-sparkle-circle" id="btnGenerateLyrics" title="Generar o estructurar letra con IA">
+                  ✨
+                </button>
+              </div>
+            </div>
           </div>
-          <p class="muted small style-prompt-note">Escribe uno o varios estilos y géneros tal cual, separados por comas. Si escribes mientras está desactivado, se activará automáticamente.</p>
-          <p id="genStyleStatus" class="style-status" aria-live="polite">Escribe un estilo para orientar la generación.</p>
-          <div class="form-grid">
-            <label>Género base
-              <select id="genGenre">
-                <option value="auto" selected>Según el estilo</option>
-                <option value="pop">Pop</option>
-                <option value="lofi">Lo-fi / Chill</option>
-                <option value="electronic">Electrónica / EDM</option>
-                <option value="cinematic">Cinemática / Épica</option>
-                <option value="trap">Trap / Urbano</option>
-                <option value="rock">Rock / Banda</option>
-                <option value="metalcore">Metalcore / Post-hardcore</option>
-                <option value="acustico">Acústico / Balada</option>
-                <option value="jazz">Jazz / Neo-soul</option>
-              </select>
-            </label>
-            <label>Estado de ánimo
-              <select id="genMood">
-                <option value="auto" selected>Según el estilo</option>
-                <option value="alegre">Alegre</option>
-                <option value="epico">Épico</option>
-                <option value="romantico">Romántico</option>
-                <option value="melancolico">Melancólico</option>
-                <option value="misterioso">Misterioso</option>
-                <option value="energetico">Energético</option>
-                <option value="relajado">Relajado</option>
-              </select>
-            </label>
-            <label>Tonalidad
-              <select id="genKey">
-                <option value="auto">Automática</option>
-                <option value="C major">Do mayor</option>
-                <option value="G major">Sol mayor</option>
-                <option value="D major">Re mayor</option>
-                <option value="A major">La mayor</option>
-                <option value="F major">Fa mayor</option>
-                <option value="Bb major">Sib mayor</option>
-                <option value="A minor">La menor</option>
-                <option value="B minor">Si menor</option>
-                <option value="E minor">Mi menor</option>
-                <option value="D minor">Re menor</option>
-                <option value="C minor">Do menor</option>
-              </select>
-            </label>
-            <label>Modo
-              <select id="genMode">
-                <option value="auto">Automático</option>
-                <option value="major">Mayor</option>
-                <option value="minor">Menor</option>
-              </select>
-            </label>
-            <label>Tempo (BPM)
-              <input id="genBpm" type="number" min="50" max="180" placeholder="Automático">
-            </label>
-            <label>Duración objetivo
-              <select id="genDuration">
-                <option value="30">30 segundos</option>
-                <option value="60">1 minuto</option>
-                <option value="90" selected>1:30</option>
-                <option value="120">2 minutos</option>
-                <option value="180">3 minutos</option>
-              </select>
-            </label>
-            <label>Semilla (opcional)
-              <input id="genSeed" type="number" min="0" placeholder="aleatoria">
-            </label>
-            <label class="check library-mode">
-              <input type="checkbox" id="genUseLibrary" checked> Usar sonidos de mi biblioteca
-            </label>
-            <label>&nbsp;
-              <button id="btnGenerate" class="btn primary">Generar canción</button>
-            </label>
+
+          <!-- Card 2: Estilos (Styles) -->
+          <div class="suno-card suno-accordion" id="cardEstilos">
+            <div class="suno-card-header" data-accordion="cardEstilos">
+              <div class="suno-header-left">
+                <span class="suno-arrow">∨</span>
+                <span class="suno-title">Estilos</span>
+              </div>
+              <div class="suno-tools" onclick="event.stopPropagation()">
+                <button type="button" class="suno-tool-btn" id="btnFormatStyles" title="Formato">|||\</button>
+              </div>
+            </div>
+            <div class="suno-card-body">
+              <textarea id="genPrompt" class="suno-styles-input" rows="3" spellcheck="false" placeholder="metalcore, heavy breakdown, driving drums, distorted guitar, raw bass"></textarea>
+              <div class="suno-tags-shelf">
+                <button type="button" class="suno-circle-action wand" id="btnMagicWand" title="Sugerencia mágica de estilos">🪄</button>
+                <button type="button" class="suno-circle-action refresh" id="btnRandomStyle" title="Rotar combinaciones">🔄</button>
+                <div class="suno-tags-scroller" id="sunoTagsScroller">
+                  <button type="button" class="suno-tag active" data-tag="metalcore">metalcore</button>
+                  <button type="button" class="suno-tag" data-tag="heavy breakdown">heavy breakdown</button>
+                  <button type="button" class="suno-tag" data-tag="driving drums">driving drums</button>
+                  <button type="button" class="suno-tag" data-tag="electric guitar">electric guitar</button>
+                  <button type="button" class="suno-tag" data-tag="bittersweet">bittersweet</button>
+                  <button type="button" class="suno-tag" data-tag="girl vocal">girl vocal</button>
+                  <button type="button" class="suno-tag" data-tag="lofi hip hop">lofi hip hop</button>
+                  <button type="button" class="suno-tag" data-tag="dark ethereal">dark ethereal</button>
+                  <button type="button" class="suno-tag" data-tag="heavy 808 bass">heavy 808 bass</button>
+                  <button type="button" class="suno-tag" data-tag="acoustic rock">acoustic rock</button>
+                  <button type="button" class="suno-tag" data-tag="deathcore">deathcore</button>
+                </div>
+              </div>
+            </div>
           </div>
-          <p class="muted small">Con la biblioteca activada, metalcore usa un loop de guitarra de tu colección y samples de batería acústica; otros estilos usan kits y multisamples. Sin biblioteca, metalcore usa guitarra sintetizada local. Ninguna ruta genera voces.</p>
+
+          <!-- Card 3: Más opciones (Advanced Options) -->
+          <div class="suno-card suno-accordion" id="cardMasOpciones">
+            <div class="suno-card-header" data-accordion="cardMasOpciones">
+              <div class="suno-header-left">
+                <span class="suno-arrow">∨</span>
+                <span class="suno-title">Más opciones</span>
+              </div>
+              <div class="suno-tools" onclick="event.stopPropagation()">
+                <button type="button" class="suno-tool-btn" id="btnResetOptions" title="Restablecer opciones">🗑</button>
+              </div>
+            </div>
+            <div class="suno-card-body suno-options-content">
+              <!-- Género vocal -->
+              <div class="suno-row">
+                <div class="suno-row-label">
+                  <span>Género vocal</span>
+                  <span class="suno-info" title="Configura voz o pista instrumental">ℹ</span>
+                </div>
+                <div class="suno-toggle-group" id="groupVocalGender">
+                  <button type="button" class="suno-btn-toggle" data-val="masculino">Masculino</button>
+                  <button type="button" class="suno-btn-toggle" data-val="femenino">Femenino</button>
+                  <button type="button" class="suno-btn-toggle active" data-val="instrumental">Instrumental</button>
+                </div>
+              </div>
+
+              <!-- Batería -->
+              <div class="suno-row">
+                <div class="suno-row-label">
+                  <span>Batería</span>
+                  <span class="suno-info" title="Kit y grooves reales de EZdrummer 3 y packs locales">ℹ</span>
+                </div>
+                <div class="suno-toggle-group">
+                  <select id="drumKitSelect" class="suno-select-pill" title="Kit de batería"></select>
+                  <select id="drumGrooveSelect" class="suno-select-pill" title="Estilo de groove">
+                    <option value="auto">Grooves: auto</option>
+                    <option value="straight">Recto</option>
+                    <option value="swing">Swing</option>
+                    <option value="halftime">Half-time</option>
+                    <option value="fills">Fills</option>
+                    <option value="off">Sin grooves</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- Duración -->
+              <div class="suno-row">
+                <div class="suno-row-label">
+                  <span>Duración</span>
+                  <span class="suno-info" title="Duración objetivo de la canción">ℹ</span>
+                </div>
+                <div class="suno-toggle-group" id="groupDuration">
+                  <button type="button" class="suno-btn-toggle" data-val="custom">Personalizada</button>
+                  <button type="button" class="suno-btn-toggle active" data-val="auto">Auto</button>
+                </div>
+              </div>
+              <div class="suno-slider-row hidden" id="customDurationBox">
+                <div class="suno-slider-header">
+                  <span class="muted small">Segundos de duración</span>
+                  <span class="suno-pink-val" id="valDuration">90 s</span>
+                </div>
+                <input type="range" class="suno-slider" id="genDurationSlider" min="30" max="240" step="15" value="90">
+              </div>
+
+              <!-- Modo Max -->
+              <div class="suno-row">
+                <div class="suno-row-label">
+                  <span>Modo Max</span>
+                  <span class="suno-info" title="Usa el catálogo completo de Ableton, EZdrummer 3 y SoundFonts reales">ℹ</span>
+                </div>
+                <div class="suno-toggle-group" id="groupModoMax">
+                  <button type="button" class="suno-btn-toggle active" data-val="off">Desactivado</button>
+                  <button type="button" class="suno-btn-toggle" data-val="on">Activado</button>
+                </div>
+              </div>
+
+              <!-- Rareza -->
+              <div class="suno-slider-row">
+                <div class="suno-slider-header">
+                  <div class="suno-row-label">
+                    <span>Rareza</span>
+                    <span class="suno-info" title="Grado de singularidad armónica">ℹ</span>
+                  </div>
+                  <span class="suno-pink-val" id="valRareza">50%</span>
+                </div>
+                <div class="suno-slider-track-wrap">
+                  <input type="range" class="suno-slider" id="sliderRareza" min="0" max="100" value="50">
+                  <div class="suno-slider-ticks">
+                    <span>|</span><span>|</span><span>|</span><span>|</span><span>|</span><span>|</span><span>|</span><span>|</span><span>|</span><span>|</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Influencia del estilo -->
+              <div class="suno-slider-row">
+                <div class="suno-slider-header">
+                  <div class="suno-row-label">
+                    <span>Influencia del estilo</span>
+                    <span class="suno-info" title="Alineación con el prompt">ℹ</span>
+                  </div>
+                  <span class="suno-pink-val" id="valInfluencia">50%</span>
+                </div>
+                <div class="suno-slider-track-wrap">
+                  <input type="range" class="suno-slider" id="sliderInfluencia" min="0" max="100" value="50">
+                  <div class="suno-slider-ticks">
+                    <span>|</span><span>|</span><span>|</span><span>|</span><span>|</span><span>|</span><span>|</span><span>|</span><span>|</span><span>|</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Variedad -->
+              <div class="suno-slider-row">
+                <div class="suno-slider-header">
+                  <div class="suno-row-label">
+                    <span>Variedad</span>
+                    <span class="suno-info" title="Variación entre compases y secciones">ℹ</span>
+                  </div>
+                  <span class="suno-pink-val" id="valVariedad">Normal</span>
+                </div>
+                <div class="suno-slider-track-wrap">
+                  <input type="range" class="suno-slider" id="sliderVariedad" min="0" max="100" value="50">
+                  <div class="suno-slider-ticks">
+                    <span>|</span><span>|</span><span>|</span><span>|</span><span>|</span><span>|</span><span>|</span><span>|</span><span>|</span><span>|</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Personalizar -->
+              <div class="suno-row">
+                <div class="suno-row-label">
+                  <span>Personalizar</span>
+                  <span class="suno-info" title="Ajustes y preferencias guardadas">ℹ</span>
+                  <span class="suno-subtag">Mi gusto</span>
+                </div>
+                <div class="suno-toggle-group" id="groupPersonalizar">
+                  <button type="button" class="suno-btn-toggle active" data-val="off">Desactivado</button>
+                  <button type="button" class="suno-btn-toggle" data-val="on">Activado</button>
+                </div>
+              </div>
+
+              <!-- Título de la canción -->
+              <div class="suno-text-row">
+                <span class="suno-row-ico">🎵</span>
+                <input type="text" id="sunoSongTitle" class="suno-row-input" placeholder="Título de la canción (opcional)" spellcheck="false">
+              </div>
+
+              <!-- Guardar en... -->
+              <div class="suno-row-save">
+                <div class="suno-save-title">
+                  <span class="suno-row-ico">📁</span>
+                  <span>Guardar en...</span>
+                </div>
+                <button type="button" class="suno-btn-workspace" id="btnSelectWorkspace">Seleccionar espacio de trabajo</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Bottom Big Button: Crear -->
+          <div class="suno-create-action-wrap">
+            <button type="button" class="suno-btn-crear" id="btnGenerate">
+              <span class="crear-icon">🎵</span>
+              <span class="crear-label">Crear</span>
+            </button>
+          </div>
+
+          <!-- Hidden inputs to maintain compatibility with existing APIs & scripts -->
+          <div class="suno-hidden-compat" style="display:none;" aria-hidden="true">
+            <button id="btnToggleStyle" class="is-on" type="button" aria-pressed="true">Usar estilo: Sí</button>
+            <div id="styleSuggestions"></div>
+            <p id="genStyleStatus"></p>
+            <select id="genGenre">
+              <option value="auto" selected>Según el estilo</option>
+              <option value="pop">Pop</option>
+              <option value="lofi">Lo-fi / Chill</option>
+              <option value="electronic">Electrónica / EDM</option>
+              <option value="cinematic">Cinemática / Épica</option>
+              <option value="trap">Trap / Urbano</option>
+              <option value="rock">Rock / Banda</option>
+              <option value="metalcore">Metalcore / Post-hardcore</option>
+              <option value="acustico">Acústico / Balada</option>
+              <option value="jazz">Jazz / Neo-soul</option>
+            </select>
+            <select id="genMood">
+              <option value="auto" selected>Según el estilo</option>
+              <option value="alegre">Alegre</option>
+              <option value="epico">Épico</option>
+              <option value="romantico">Romántico</option>
+              <option value="melancolico">Melancólico</option>
+              <option value="misterioso">Misterioso</option>
+              <option value="energetico">Energético</option>
+              <option value="relajado">Relajado</option>
+            </select>
+            <select id="genKey">
+              <option value="auto">Automática</option>
+              <option value="C major">Do mayor</option>
+              <option value="G major">Sol mayor</option>
+              <option value="D major">Re mayor</option>
+              <option value="A major">La mayor</option>
+              <option value="F major">Fa mayor</option>
+              <option value="Bb major">Sib mayor</option>
+              <option value="A minor">La menor</option>
+              <option value="B minor">Si menor</option>
+              <option value="E minor">Mi menor</option>
+              <option value="D minor">Re menor</option>
+              <option value="C minor">Do menor</option>
+            </select>
+            <select id="genMode">
+              <option value="auto">Automático</option>
+              <option value="major">Mayor</option>
+              <option value="minor">Menor</option>
+            </select>
+            <input id="genBpm" type="number" min="50" max="180">
+            <select id="genDuration">
+              <option value="30">30 segundos</option>
+              <option value="60">1 minuto</option>
+              <option value="90" selected>1:30</option>
+              <option value="120">2 minutos</option>
+              <option value="180">3 minutos</option>
+            </select>
+            <input id="genSeed" type="number" min="0">
+            <input type="checkbox" id="genUseLibrary" checked>
+          </div>
         </div>
 
-        <div class="card result-card" id="genResult">
-          <div class="empty-state">
-            <div class="empty-icon">✦</div>
-            <h3>Tu próxima canción empieza aquí</h3>
-            <p>Elige un estilo o escribe una idea. En unos segundos tendrás una base editable con pistas separadas.</p>
+        <!-- Columna Derecha: Reproductor, Ficha y Multitrack Bridge -->
+        <div class="suno-player-col">
+          <div class="card result-card suno-result-card" id="genResult">
+            <div class="empty-state">
+              <div class="empty-icon">✦</div>
+              <h3>Tu próxima canción empieza aquí</h3>
+              <p>Personaliza tu letra y estilos en el panel izquierdo. Al hacer clic en <strong>Crear</strong>, el motor combinará baterías reales de EZdrummer 3, guitarras amplificadas y bajo eléctrico de tu biblioteca local.</p>
+            </div>
           </div>
-        </div>
-      </div>
 
-      <div class="card separation-card">
-        <div class="section-head">
-          <div>
-            <h2>Separar una canción</h2>
-            <p>Sube una mezcla y obtén batería, bajo, voz y otros instrumentos como pistas de audio editables.</p>
+          <div class="card separation-card">
+            <div class="section-head">
+              <div>
+                <h2>Separar audio (Stems)</h2>
+                <p>Sube cualquier canción o mezcla para aislar batería, bajo y guitarra con Demucs local.</p>
+              </div>
+              <span class="pill pill-green">Local</span>
+            </div>
+            <div class="separation-controls">
+              <label class="btn file-btn">
+                Elegir archivo
+                <input id="separationInput" type="file" accept=".wav,.aif,.aiff,.mp3,.flac,.ogg,.m4a,audio/*">
+              </label>
+              <span id="separationFileName" class="muted small">Ningún archivo seleccionado</span>
+              <button id="btnSeparate" class="btn primary" disabled>Separar en pistas</button>
+            </div>
+            <div id="separationResult" class="separation-result" aria-live="polite"></div>
           </div>
-          <span class="pill pill-green">Procesamiento local</span>
-        </div>
-        <div class="separation-controls">
-          <label class="btn file-btn">
-            Elegir canción
-            <input id="separationInput" type="file" accept=".wav,.aif,.aiff,.mp3,.flac,.ogg,.m4a,audio/*">
-          </label>
-          <span id="separationFileName" class="muted small">Ningún archivo seleccionado</span>
-          <button id="btnSeparate" class="btn primary" disabled>Separar en pistas</button>
-        </div>
-        <p class="muted small separation-note">Usa Demucs (HTDemucs) en este equipo. La separación estima los stems; no recupera los samples originales exactos ni genera MIDI. Los WAV/MIDI exportados desde Ableton o Drummer se pueden indexar aparte en Biblioteca.</p>
-        <div id="separationResult" class="separation-result" aria-live="polite"></div>
-      </div>
 
-      <div class="card" id="genSpecCard">
-        <div class="empty-state small">
-          <p>Cuando generes una canción, aquí verás la ficha técnica: forma, progresiones, instrumentos y decisiones de mezcla.</p>
+          <div class="card" id="genSpecCard">
+            <div class="empty-state small">
+              <p>Cuando generes una pista, aquí se detallará la estructura (intro, verso, coro, puente), progresiones armónicas, BPM y los samples reales utilizados.</p>
+            </div>
+          </div>
         </div>
       </div>
     </section>
@@ -293,7 +512,7 @@
           </label>
           <div class="action-row">
             <button class="btn small-btn" id="btnAddRoot">Añadir</button>
-            <button class="btn small-btn" id="btnDetectAbleton">Detectar Ableton</button>
+            <button class="btn small-btn" id="btnDetectAbleton">Detectar Ableton, EZdrummer y Packs</button>
           </div>
           <div class="action-row">
             <button class="btn primary" id="btnScanAll">Escanear todo</button>
@@ -317,17 +536,17 @@
 
           <div class="card mini-card">
             <h3>Formatos</h3>
-            <p class="small">WAV, MP3, FLAC, OGG, M4A y AIFF se reproducen directamente. Los clips <code>.alc</code> y los MIDI se renderizan con el motor interno. Los grooves <code>.agr</code> y las sesiones <code>.als</code> se indexan como referencia.</p>
+            <p class="small">WAV, MP3, FLAC, OGG, M4A y AIFF se reproducen directamente. Los clips <code>.alc</code> y los MIDI de EZdrummer/packs se renderizan con instrumentos reales (SoundFont FluidR3 y muestras acústicas). Los grooves <code>.agr</code> y las sesiones <code>.als</code> se indexan como referencia.</p>
           </div>
         </aside>
 
         <div class="library-main">
           <div class="library-toolbar card">
-            <input id="assetSearch" placeholder="Buscar kick, 808, piano, 120 bpm…">
+            <input id="assetSearch" placeholder="Buscar kick, 808, piano, 120 bpm, metal, groove…">
             <select id="assetKind">
               <option value="all">Todo</option>
               <option value="audio">Audio</option>
-              <option value="midi">MIDI</option>
+              <option value="midi">MIDI (EZdrummer / Packs)</option>
               <option value="clip">Clips Ableton</option>
               <option value="groove">Grooves</option>
               <option value="session">Sesiones</option>
@@ -340,7 +559,7 @@
 
           <div id="assetList" class="asset-list">
             <div class="empty-state small">
-              <p>Detecta tu biblioteca de Ableton o añade una carpeta y pulsa Escanear.</p>
+              <p>Detecta tus librerías de Ableton Live, EZdrummer 3 y Packs de baterías/guitarras, o añade una carpeta y pulsa Escanear.</p>
             </div>
           </div>
 
@@ -348,132 +567,6 @@
             <button class="btn" id="btnLoadMore" hidden>Cargar más</button>
           </div>
         </div>
-      </div>
-    </section>
-
-    <section id="view-agentes" class="view">
-      <div class="section-head">
-        <div>
-          <h1>Agentes especiales</h1>
-          <p>Cuatro especialistas consultan tu proyecto y te dan decisiones concretas. No son chatbots genéricos: trabajan con teoría musical y con las reglas del estudio.</p>
-        </div>
-      </div>
-
-      <div class="agents-grid">
-        <article class="card agent-card" data-agent="productor">
-          <header>
-            <span class="agent-badge">01</span>
-            <div><h3>Productor</h3><p>Plan de producción: tempo, tonalidad, forma y arreglo.</p></div>
-          </header>
-          <div class="agent-controls">
-            <label>Género
-              <select data-field="genre">
-                <option value="pop">Pop</option>
-                <option value="lofi">Lo-fi</option>
-                <option value="electronic">Electrónica</option>
-                <option value="cinematic">Cinemática</option>
-                <option value="trap">Trap</option>
-                <option value="rock">Rock</option>
-                <option value="acustico">Acústico</option>
-                <option value="jazz">Jazz</option>
-              </select>
-            </label>
-            <label>Ánimo
-              <select data-field="mood">
-                <option value="alegre">Alegre</option>
-                <option value="epico">Épico</option>
-                <option value="romantico">Romántico</option>
-                <option value="melancolico">Melancólico</option>
-                <option value="misterioso">Misterioso</option>
-                <option value="energetico">Energético</option>
-                <option value="relajado">Relajado</option>
-              </select>
-            </label>
-            <label>Tempo
-              <input type="number" data-field="bpm" min="50" max="180" value="100">
-            </label>
-          </div>
-          <button class="btn agent-run">Consultar productor</button>
-          <div class="agent-output"></div>
-        </article>
-
-        <article class="card agent-card" data-agent="composicion">
-          <header>
-            <span class="agent-badge">02</span>
-            <div><h3>Composición</h3><p>Progresiones, motivo melódico y registro vocal.</p></div>
-          </header>
-          <div class="agent-controls">
-            <label>Ánimo
-              <select data-field="mood">
-                <option value="melancolico">Melancólico</option>
-                <option value="alegre">Alegre</option>
-                <option value="romantico">Romántico</option>
-                <option value="epico">Épico</option>
-                <option value="misterioso">Misterioso</option>
-                <option value="energetico">Energético</option>
-                <option value="relajado">Relajado</option>
-              </select>
-            </label>
-            <label>Modo
-              <select data-field="mode">
-                <option value="auto">Automático</option>
-                <option value="major">Mayor</option>
-                <option value="minor">Menor</option>
-              </select>
-            </label>
-            <label>Tonalidad
-              <select data-field="key">
-                <option value="auto">Automática</option>
-                <option value="C major">Do mayor</option>
-                <option value="A minor">La menor</option>
-                <option value="D minor">Re menor</option>
-                <option value="F major">Fa mayor</option>
-                <option value="G major">Sol mayor</option>
-              </select>
-            </label>
-          </div>
-          <button class="btn agent-run">Consultar composición</button>
-          <div class="agent-output"></div>
-        </article>
-
-        <article class="card agent-card" data-agent="mezcla">
-          <header>
-            <span class="agent-badge">03</span>
-            <div><h3>Mezcla</h3><p>Diagnóstico del proyecto: balance, máscaras y prioridades.</p></div>
-          </header>
-          <p class="muted small">El agente lee las pistas de tu estudio en este momento.</p>
-          <button class="btn agent-run">Analizar mi mezcla</button>
-          <div class="agent-output"></div>
-        </article>
-
-        <article class="card agent-card" data-agent="derechos">
-          <header>
-            <span class="agent-badge">04</span>
-            <div><h3>Derechos</h3><p>Qué prueba tu certificado y cómo reforzarlo en tu país.</p></div>
-          </header>
-          <div class="agent-controls">
-            <label>País
-              <select data-field="country">
-                <option value="espana">España</option>
-                <option value="mexico">México</option>
-                <option value="argentina">Argentina</option>
-                <option value="colombia">Colombia</option>
-                <option value="chile">Chile</option>
-                <option value="peru">Perú</option>
-                <option value="estados_unidos">Estados Unidos</option>
-                <option value="otro">Otro</option>
-              </select>
-            </label>
-            <label>¿Usaste IA?
-              <select data-field="usesAI">
-                <option value="yes">Sí, para generar o asistir</option>
-                <option value="no">No, todo lo compuse yo</option>
-              </select>
-            </label>
-          </div>
-          <button class="btn agent-run">Consultar derechos</button>
-          <div class="agent-output"></div>
-        </article>
       </div>
     </section>
 
@@ -579,7 +672,6 @@
           <div class="card warn-card">
             <h3>Importante</h3>
             <p>Este certificado es una prueba privada de fecha e integridad. No es un título oficial de propiedad intelectual ni sustituye el registro público de tu país. La protección de obras generadas con IA depende de la ley de cada jurisdicción y de la aportación creativa humana documentada.</p>
-            <button class="btn small-btn" id="btnAskRightsAgent">Consultar agente de derechos</button>
           </div>
 
           <div class="card" id="certResultCard">

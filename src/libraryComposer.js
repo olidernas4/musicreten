@@ -3,6 +3,7 @@ import {
   scaleMidis, mulberry32, detectFromPrompt, progressionLabels, progressionRomans
 } from './music.js';
 import { getCatalogAssets } from './library.js';
+import { planGrooves, hitsForBar } from './drumGrooves.js';
 
 const GENRES = {
   pop: { label: 'Pop', bpm: 108, mood: 'alegre', mode: 'major' },
@@ -84,16 +85,18 @@ const KIT_PREFS = {
 
 const INSTRUMENT_PREFS = {
   bass: {
-    trap: ['infected', 'pulse', 'mamas'],
-    electronic: ['pulse', 'infected', 'mamas'],
-    lofi: ['mamas', 'infected', 'pulse'],
-    rock: ['mamas', 'pulse', 'infected'],
-    acustico: ['mamas', 'pulse', 'infected'],
-    jazz: ['mamas', 'pulse', 'infected'],
-    cinematic: ['infected', 'pulse', 'mamas'],
-    pop: ['pulse', 'mamas', 'infected']
+    metalcore: ['electric bass', 'mamas'],
+    rock: ['electric bass', 'mamas', 'pulse'],
+    trap: ['electric bass', 'mamas', 'infected'],
+    lofi: ['electric bass', 'mamas', 'pulse'],
+    electronic: ['electric bass', 'pulse', 'infected'],
+    acustico: ['electric bass', 'mamas'],
+    jazz: ['electric bass', 'mamas'],
+    cinematic: ['electric bass', 'mamas'],
+    pop: ['electric bass', 'mamas', 'pulse']
   },
   keys: {
+    metalcore: ['grand piano', 'guitar', 'ambient', 'voodoo'],
     trap: ['galactica', 'smooth', 'lo fi', 'grand piano'],
     electronic: ['galactica', 'smooth', 'sandblaster', 'byte sized'],
     lofi: ['lo fi', 'voodoo', 'grand piano', 'upright'],
@@ -104,6 +107,7 @@ const INSTRUMENT_PREFS = {
     pop: ['grand piano', 'smooth', 'galactica', 'upright']
   },
   lead: {
+    metalcore: ['metallic', 'guitar', 'ob saw', 'arp poly'],
     trap: ['arp poly', 'phantasm', 'metallic', 'ob saw'],
     electronic: ['arp poly', 'phantasm', 'ob saw', 'metallic'],
     lofi: ['lo fi', 'galactica', 'metallic', 'arp poly'],
@@ -253,7 +257,15 @@ function selectDrumSample(assets, role, rng, kit) {
   if (!folder) return null;
   let candidates = assets.filter((asset) => {
     if (asset.kind !== 'audio' || !asset.playable) return false;
-    if (!asset.relPath.includes(`/Drums/${folder}/`)) return false;
+    const rel = asset.relPath.replace(/\\/g, '/').toLowerCase();
+    const name = asset.name.toLowerCase();
+    const folderMatch = rel.includes(`/drums/${folder.toLowerCase()}/`) ||
+                        rel.includes(`/${folder.toLowerCase()}/`) ||
+                        (role === 'hat' && (rel.includes('/hihat/') || rel.includes('/hi-hat/')));
+    const nameMatch = name.includes(role.toLowerCase()) ||
+                      (role === 'hat' && (name.includes('hat') || name.includes('hihat') || name.includes('hh'))) ||
+                      (role === 'cymbal' && (name.includes('crash') || name.includes('cymbal') || name.includes('ride') || name.includes('splash')));
+    if (!folderMatch && !nameMatch) return false;
     const maxDuration = role === 'cymbal' ? 10 : 2.8;
     if (!Number.isFinite(asset.duration) || asset.duration < 0.03 || asset.duration > maxDuration) return false;
     return true;
@@ -276,8 +288,20 @@ function selectDrumSample(assets, role, rng, kit) {
   return scored[0].asset;
 }
 
-function chooseDrumKit(assets, genre, rng, warnings) {
-  const prefs = KIT_PREFS[genre] || KIT_PREFS.pop;
+function selectOpenHat(assets, rng) {
+  const candidates = assets.filter((asset) => {
+    if (asset.kind !== 'audio' || !asset.playable) return false;
+    if (!/open/i.test(asset.name) || !/hat/i.test(asset.name)) return false;
+    return Number.isFinite(asset.duration) && asset.duration >= 0.03 && asset.duration < 2;
+  });
+  if (!candidates.length) return null;
+  return candidates.map((asset) => ({ asset, score: rng() * 2 - (badName(asset.name) ? 8 : 0) }))
+    .sort((a, b) => b.score - a.score)[0].asset;
+}
+
+function chooseDrumKit(assets, genre, rng, warnings, kitPreference = '') {
+  const genrePrefs = KIT_PREFS[genre] || KIT_PREFS.pop;
+  const prefs = kitPreference ? [kitPreference, ...genrePrefs] : genrePrefs;
   const roles = ['kick', 'snare', 'hat'];
   let kit = null;
   for (const candidate of prefs) {
@@ -299,6 +323,7 @@ function chooseDrumKit(assets, genre, rng, warnings) {
       selectDrumSample(assets, 'cymbal', rng, 'Acoustic') ||
       selectDrumSample(assets, 'cymbal', rng, 'Crash');
   }
+  drums.openHat = selectOpenHat(assets, rng);
   for (const role of roles) {
     if (!drums[role]) warnings.push(`No se encontró un sample de ${role === 'hat' ? 'hi-hat' : role}. Se omite esa parte de la batería.`);
   }
@@ -315,15 +340,14 @@ function assetKeyLabel(key) {
 
 function chooseGuitarLoop(assets, keyLabel) {
   return assets
-    .filter((asset) =>
-      asset.kind === 'audio' &&
-      asset.playable &&
-      asset.relPath.replace(/\\/g, '/').toLowerCase().includes('/loops/tonal/guitar/') &&
-      Number.isFinite(asset.duration) &&
-      asset.duration >= 6 &&
-      Number.isFinite(asset.bpm) &&
-      assetKeyLabel(asset.musicalKey) === keyLabel
-    )
+    .filter((asset) => {
+      if (asset.kind !== 'audio' || !asset.playable) return false;
+      const rel = asset.relPath.replace(/\\/g, '/').toLowerCase();
+      const isGuitar = rel.includes('/loops/tonal/guitar/') || rel.includes('/guitar') || asset.name.toLowerCase().includes('guitar');
+      if (!isGuitar) return false;
+      if (!Number.isFinite(asset.duration) || asset.duration < 4) return false;
+      return assetKeyLabel(asset.musicalKey) === keyLabel;
+    })
     .sort((a, b) => Number(/amp/i.test(b.name)) - Number(/amp/i.test(a.name)))[0] || null;
 }
 
@@ -462,6 +486,17 @@ function drumClip(sample, start, role, options = {}) {
   };
 }
 
+function grooveSample(kit, role) {
+  if (role === 'openHat') return kit.openHat || kit.hat || null;
+  if (role === 'clap') return kit.clap || kit.snare || null;
+  if (role === 'shaker') return kit.shaker || null;
+  if (role === 'cymbal') return kit.cymbal || null;
+  if (role === 'tom') return kit.tom || kit.snare || null;
+  if (role === 'hat') return kit.hat || null;
+  if (role === 'snare') return kit.snare || null;
+  return kit.kick || null;
+}
+
 function guitarLoopClip(sample, start, duration, offset, rate, options = {}) {
   return {
     name: `${stripExt(sample.name)} · riff`,
@@ -488,11 +523,18 @@ export function composeLibrarySong(options = {}) {
   const useStyle = options.useStyle !== false;
   const prompt = useStyle ? String(options.prompt || '') : '';
   const detected = detectFromPrompt(prompt);
+  const influence = clamp(Number(options.influence ?? 50) / 100, 0, 1);
+  const rarity = clamp(Number(options.rarity ?? 50) / 100, 0, 1);
+  const variety = clamp(Number(options.variety ?? 50), 0, 100);
+  const lyrics = String(options.lyrics || '').trim();
+  const vocalGender = String(options.vocalGender || 'instrumental');
   const selectedGenre = options.genre && options.genre !== 'auto' && GENRES[options.genre] ? options.genre : null;
-  const genre = (useStyle && detected.genre) || selectedGenre || detected.genre || 'pop';
+  const styleGenre = useStyle && detected.genre && (influence >= 0.25 || !selectedGenre) ? detected.genre : null;
+  const genre = styleGenre || selectedGenre || detected.genre || 'pop';
   const cfg = GENRES[genre];
-  const mood = (useStyle && detected.mood) ||
-    (options.mood && options.mood !== 'auto' ? options.mood : cfg.mood);
+  const styleMood = useStyle && detected.mood && (influence >= 0.25 || !options.mood || options.mood === 'auto')
+    ? detected.mood : null;
+  const mood = styleMood || (options.mood && options.mood !== 'auto' ? options.mood : cfg.mood);
   const seed = Number.isFinite(Number(options.seed)) && options.seed !== '' ? Number(options.seed) : Math.floor(Math.random() * 1e9);
   const rng = mulberry32(seed);
 
@@ -533,9 +575,10 @@ export function composeLibrarySong(options = {}) {
   const bars = form.bars;
   const duration = bars * barSec;
 
-  const verseSteps = getProgression(mood, mode, 0);
-  const chorusSteps = getProgression(mood, mode, 1);
-  const bridgeSteps = getProgression(mood, mode, 2);
+  const variant = Math.round(rarity * 2);
+  const verseSteps = getProgression(mood, mode, variant);
+  const chorusSteps = getProgression(mood, mode, variant + 1);
+  const bridgeSteps = getProgression(mood, mode, variant + 2);
   const verseChords = progressionChords(tonicPc, mode, verseSteps);
   const chorusChords = progressionChords(tonicPc, mode, chorusSteps);
   const bridgeChords = progressionChords(tonicPc, mode, bridgeSteps);
@@ -543,7 +586,15 @@ export function composeLibrarySong(options = {}) {
   const melodyMotif = makeMelodyMotif(rng);
 
   const warnings = [];
-  const drumKit = chooseDrumKit(assets, genre, rng, warnings);
+  const drumKit = chooseDrumKit(assets, genre, rng, warnings, String(options.drumKit || ''));
+  const groovePlan = options.useGrooves === false ? null :
+    planGrooves({
+      assets, genre, sections: form.sections, rng, variety,
+      feel: ['straight', 'swing', 'halftime', 'fills'].includes(options.grooveFeel) ? options.grooveFeel : null
+    });
+  if (groovePlan) {
+    warnings.push(`Batería construida con ${groovePlan.total} grooves MIDI reales de tu biblioteca (EZdrummer 3 y packs).`);
+  }
   const guitarRate = guitarLoop ? bpm / guitarLoop.bpm : 1;
   if (guitarLoop && Math.abs(guitarRate - 1) > 0.01) {
     warnings.push(`La guitarra usa un loop grabado a ${guitarLoop.bpm} BPM; ajustar su velocidad a ${bpm} BPM también cambia ligeramente su tono.`);
@@ -692,56 +743,83 @@ export function composeLibrarySong(options = {}) {
 
       const drumsOn = !isIntro && !isOutro && !(isBridge && bar < Math.ceil(section.bars / 2));
       if (drumsOn) {
-        let kickSteps = genre === 'metalcore'
-          ? (isChorus ? [0, 1.5, 2.5, 3.5] : [0, 2])
-          : isChorus && genre === 'electronic'
-            ? [0, 1, 2, 3]
-            : genre === 'trap' && isChorus
-              ? [0, 2, 2.75]
-              : [0, 2];
-        if (section.name === 'verso2' && bar % 2 === 1) kickSteps = genre === 'metalcore' ? [0, 1.5, 3] : [0, 1.5];
-        if (isBridge) kickSteps = [0, 2.5];
-        if (finalChorus && bar % 4 === 3) kickSteps = genre === 'metalcore' ? [0, 1, 2.5, 3.5] : [0, 1, 2.5, 3.5];
-        if (drumKit.kick) {
-          for (const step of kickSteps) {
-            add('Batería', drumClip(drumKit.kick, barStart + step * beatSec, 'kick', { gain: 0.95 }));
+        const sectionPlan = groovePlan?.plan.get(section.index);
+        if (sectionPlan) {
+          const chosen = finalBar && sectionPlan.fills.length
+            ? sectionPlan.fills[bar % sectionPlan.fills.length]
+            : sectionPlan.grooves[bar % sectionPlan.grooves.length];
+          const hits = hitsForBar({
+            groove: chosen,
+            barStart,
+            beatSec,
+            barIndex: bar,
+            rng,
+            energy: 0.7 + section.energy * 0.34,
+            jitter: 0.002 + (variety / 100) * 0.006
+          });
+          for (const hit of hits) {
+            const sample = grooveSample(drumKit, hit.role);
+            if (!sample) continue;
+            const trackName = hit.role === 'clap' || hit.role === 'shaker' ? 'Percusión' : 'Batería';
+            const clipRole = hit.role === 'openHat' ? 'hat' : hit.role;
+            add(trackName, drumClip(sample, hit.start, clipRole, { gain: hit.gain }));
           }
-        }
-        if (drumKit.snare) {
-          const snareSteps = genre === 'metalcore' ? [2] : [1, 3];
-          for (const step of snareSteps) {
-            add('Batería', drumClip(drumKit.snare, barStart + step * beatSec, 'snare', { gain: 0.8 }));
-            if (isChorus && genre !== 'metalcore' && drumKit.clap) {
-              add('Percusión', drumClip(drumKit.clap, barStart + step * beatSec, 'clap', { gain: 0.5, pan: 0.06 }));
+          if (isChorus && bar === 0 && drumKit.cymbal &&
+            chosen.notes.every((note) => note.role !== 'cymbal')) {
+            add('Batería', drumClip(drumKit.cymbal, barStart, 'cymbal', { gain: 0.72, pan: 0.18 }));
+          }
+        } else {
+          let kickSteps = genre === 'metalcore'
+            ? (isChorus ? [0, 1.5, 2.5, 3.5] : [0, 2])
+            : isChorus && genre === 'electronic'
+              ? [0, 1, 2, 3]
+              : genre === 'trap' && isChorus
+                ? [0, 2, 2.75]
+                : [0, 2];
+          if (section.name === 'verso2' && bar % 2 === 1) kickSteps = genre === 'metalcore' ? [0, 1.5, 3] : [0, 1.5];
+          if (isBridge) kickSteps = [0, 2.5];
+          if (finalChorus && bar % 4 === 3) kickSteps = genre === 'metalcore' ? [0, 1, 2.5, 3.5] : [0, 1, 2.5, 3.5];
+          if (drumKit.kick) {
+            for (const step of kickSteps) {
+              add('Batería', drumClip(drumKit.kick, barStart + step * beatSec, 'kick', { gain: 0.95 }));
             }
           }
-        }
-        const hatGain = isChorus ? 0.34 : 0.24;
-        const hatSteps = section.name === 'verso2' && bar % 2 === 1 ? 6 : 8;
-        if (drumKit.hat) {
-          for (let step = 0; step < hatSteps; step++) {
-            add('Batería', drumClip(drumKit.hat, barStart + step * 0.5 * beatSec, 'hat', {
-              gain: step % 2 === 0 ? hatGain : hatGain * 0.72,
-              pan: 0.16
-            }));
+          if (drumKit.snare) {
+            const snareSteps = genre === 'metalcore' ? [2] : [1, 3];
+            for (const step of snareSteps) {
+              add('Batería', drumClip(drumKit.snare, barStart + step * beatSec, 'snare', { gain: 0.8 }));
+              if (isChorus && genre !== 'metalcore' && drumKit.clap) {
+                add('Percusión', drumClip(drumKit.clap, barStart + step * beatSec, 'clap', { gain: 0.5, pan: 0.06 }));
+              }
+            }
           }
-        }
-        if (genre !== 'metalcore' && drumKit.shaker) {
-          for (let step = 0; step < 4; step++) {
-            add('Percusión', drumClip(drumKit.shaker, barStart + (step + 0.5) * beatSec, 'shaker', {
-              gain: isChorus ? 0.28 : 0.18,
-              pan: -0.22
-            }));
+          const hatGain = isChorus ? 0.34 : 0.24;
+          const hatSteps = section.name === 'verso2' && bar % 2 === 1 ? 6 : 8;
+          if (drumKit.hat) {
+            for (let step = 0; step < hatSteps; step++) {
+              add('Batería', drumClip(drumKit.hat, barStart + step * 0.5 * beatSec, 'hat', {
+                gain: step % 2 === 0 ? hatGain : hatGain * 0.72,
+                pan: 0.16
+              }));
+            }
           }
-        }
-        if (genre === 'metalcore' && isChorus && bar === 0 && drumKit.cymbal) {
-          add('Batería', drumClip(drumKit.cymbal, barStart, 'cymbal', { gain: 0.72, pan: 0.18 }));
-        }
-        if (finalBar && drumKit.snare) {
-          add('Batería', drumClip(drumKit.snare, barStart + 3.5 * beatSec, 'snare', { gain: 0.72 }));
-          if (drumKit.tom) {
-            add('Batería', drumClip(drumKit.tom, barStart + 3.25 * beatSec, 'tom', { gain: 0.55, pan: -0.1 }));
-            add('Batería', drumClip(drumKit.tom, barStart + 3.75 * beatSec, 'tom', { gain: 0.5, pan: 0.1 }));
+          if (genre !== 'metalcore' && drumKit.shaker) {
+            for (let step = 0; step < 4; step++) {
+              add('Percusión', drumClip(drumKit.shaker, barStart + (step + 0.5) * beatSec, 'shaker', {
+                gain: isChorus ? 0.28 : 0.18,
+                pan: -0.22
+              }));
+            }
+          }
+          if (genre === 'metalcore' && isChorus && bar === 0 && drumKit.cymbal) {
+            add('Batería', drumClip(drumKit.cymbal, barStart, 'cymbal', { gain: 0.72, pan: 0.18 }));
+          }
+          if (finalBar && drumKit.snare) {
+            add('Batería', drumClip(drumKit.snare, barStart + 3.5 * beatSec, 'snare', { gain: 0.72 }));
+            if (drumKit.tom) {
+              add('Batería', drumClip(drumKit.tom, barStart + 3.25 * beatSec, 'tom', { gain: 0.55, pan: -0.1 }));
+              add('Batería', drumClip(drumKit.tom, barStart + 3.75 * beatSec, 'tom', { gain: 0.5, pan: 0.1 }));
+            }
           }
         }
       } else if (isIntro && finalBar && drumKit.hat) {
@@ -781,7 +859,9 @@ export function composeLibrarySong(options = {}) {
   })).sort((a, b) => b.uses - a.uses);
 
   const instruments = {
-    bateria: drumKit.kick ? `Kit ${drumKit.kit}` : 'Sin batería',
+    bateria: drumKit.kick
+      ? `Kit ${drumKit.kit}${groovePlan ? ` · ${groovePlan.total} grooves reales` : ''}`
+      : 'Sin batería',
     bajo: bassInstrument ? bassInstrument.label : 'Sin bajo',
     armonia: keysInstrument ? keysInstrument.label : 'Sin armonía',
     melodia: leadInstrument ? leadInstrument.label : 'Sin melodía',
@@ -806,6 +886,9 @@ export function composeLibrarySong(options = {}) {
     createdAt: new Date().toISOString(),
     prompt,
     detected,
+    lyrics,
+    vocalGender,
+    controls: { rarity: round(rarity, 2), influence: round(influence, 2), variety },
     tracks: finalTracks.map((track) => ({
       name: track.name,
       role: track.role,
@@ -852,9 +935,23 @@ export function composeLibrarySong(options = {}) {
       },
       instruments,
       groove: {
-        feel: genre === 'metalcore' ? 'half-time' : genre === 'jazz' || genre === 'lofi' ? 'swing ligero' : 'recto',
+        source: groovePlan ? 'Grooves MIDI reales de EZdrummer 3 y packs' : 'Patrones internos',
+        groovesAvailable: groovePlan ? groovePlan.total : 0,
+        variants: groovePlan ? groovePlan.variants : 1,
+        feel: options.grooveFeel && options.grooveFeel !== 'fills'
+          ? options.grooveFeel
+          : genre === 'metalcore' ? 'half-time' : genre === 'jazz' || genre === 'lofi' ? 'swing ligero' : 'recto',
         swing: genre === 'jazz' ? 0.16 : genre === 'lofi' ? 0.08 : 0,
-        pushPull: []
+        pushPull: groovePlan ? [
+          { part: 'bateria', offset_ms: 0, note: 'groove MIDI con microvariaciones de tiempo y velocidad' }
+        ] : []
+      },
+      vocal: {
+        requested: vocalGender,
+        lyricsProvided: Boolean(lyrics),
+        note: vocalGender === 'instrumental'
+          ? 'Producción instrumental: no se sintetiza voz.'
+          : 'El motor actual no sintetiza voz; la letra se conserva como material para editar o usar en un DAW.'
       },
       mix: {
         tips: [
@@ -870,8 +967,8 @@ export function composeLibrarySong(options = {}) {
         ]
       }
     },
-    authorsNote: genre === 'metalcore'
+    authorsNote: `${genre === 'metalcore'
       ? 'Base instrumental con loop de guitarra eléctrica y muestras de batería de tu biblioteca local; las pistas quedan separadas para edición.'
-      : 'Base instrumental creada con samples de tu biblioteca local. Las pistas están separadas para que puedas editar, mover y recortar cada clip antes de exportar.'
+      : 'Base instrumental creada con samples de tu biblioteca local. Las pistas están separadas para que puedas editar, mover y recortar cada clip antes de exportar.'}${groovePlan ? ' La batería sigue grooves MIDI reales de tu biblioteca.' : ''}${lyrics ? ' La letra escrita se guarda como material de trabajo; esta versión del motor no genera voz.' : ''}`
   };
 }

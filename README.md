@@ -142,7 +142,7 @@ src/library.js       Índice de la biblioteca local, escaneo, caché y detecció
 src/libraryComposer.js Composición con multisamples y kits reales de la biblioteca
 src/midi.js          Lectura de MIDI/.alc y render de clips con el motor interno
 src/certify.js       Hash, registro encadenado y certificados HTML/TXT
-src/agents.js        Lógica de los cuatro agentes
+src/drumGrooves.js   Selección y extracción de grooves reales de batería
 public/              Interfaz: HTML, CSS, editor multipista y orquestación
 data/generated/      Canciones generadas (stems + mezcla + meta.json)
 data/works/          Obras certificadas (master.wav + certificado + hash)
@@ -162,7 +162,7 @@ test/smoke.js        Pruebas de humo (npm test)
 - `POST /api/export?format=mp3|flac|ogg|m4a` — recibe un WAV y devuelve el formato pedido.
 - `POST /api/assets/import` — audio binario + cabecera `x-file-name`; copia a `data/assets/imported`.
 - `GET /api/catalog` — géneros, ánimos y países disponibles.
-- `POST /api/agent` — `{agent, payload}`.
+- `GET /api/drums/catalog` — kits y grooves reales disponibles para la batería.
 - `POST /api/works` — WAV binario + cabecera `x-work-meta` (JSON en base64url).
 - `GET /api/works` — lista de obras certificadas.
 - `GET /api/works/:id/certificate|json|text` — certificado y metadatos.

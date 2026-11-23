@@ -1,0 +1,43 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm test*)",
+      "Bash(npm run test*)",
+      "Bash(npm run build*)",
+      "Bash(npm run gen:tipos*)",
+      "Bash(npx tsc --noEmit*)",
+      "Bash(pnpm test*)",
+      "Bash(pnpm run test*)",
+      "Bash(pnpm run build*)",
+      "Bash(pnpm exec tsc --noEmit*)",
+      "Bash(npm --prefix * test*)",
+      "Bash(npm --prefix * run test*)",
+      "Bash(npm --prefix * run build*)",
+      "PowerShell(npm test*)",
+      "PowerShell(npm run test*)",
+      "PowerShell(npm run build*)",
+      "PowerShell(npx tsc --noEmit*)",
+      "PowerShell(pnpm test*)",
+      "PowerShell(pnpm run test*)"
+    ],
+    "deny": [
+      "Bash(git *)",
+      "PowerShell(git *)",
+      "Read(**/.env)",
+      "Read(**/.env.local)",
+      "Read(**/.env.production)",
+      "Read(**/.env.development)",
+      "Read(**/.env.test)",
+      "Read(**/*.pem)",
+      "Read(**/*.key)",
+      "Read(**/id_rsa*)",
+      "Read(**/id_ed25519*)",
+      "Read(**/Credenciales.txt)",
+      "Read(**/gemini.txt)",
+      "Read(**/docker_hostinger.txt)",
+      "Edit(**/.env)",
+      "Edit(**/.env.local)",
+      "Edit(**/.env.production)"
+    ]
+  }
+}

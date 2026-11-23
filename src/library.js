@@ -5,7 +5,7 @@ import os from 'node:os';
 import crypto from 'node:crypto';
 import { spawn } from 'node:child_process';
 import { readWavInfo } from './certify.js';
-import { readClipFile, renderMidiEvents } from './midi.js';
+import { readClipFile, renderMidiEvents, renderClipToWavFile } from './midi.js';
 import { writeWavFile } from './wav.js';
 
 const AUDIO_EXTS = new Set(['.wav', '.aif', '.aiff', '.mp3', '.flac', '.ogg', '.m4a']);
@@ -405,20 +405,23 @@ export async function prepareAssetAudio(id) {
   if (asset.kind === 'midi' || asset.kind === 'clip') {
     try {
       const clip = readClipFile(fullPath, ext);
-      const rendered = renderMidiEvents({
+      const renderRes = await renderClipToWavFile({
+        filePath: ext === '.mid' || ext === '.midi' ? fullPath : null,
         notes: clip.notes,
         tempo: clip.tempo,
         category: `${asset.category} ${asset.tags.join(' ')}`,
-        name: asset.name
+        name: asset.name,
+        outputPath: cacheFile
       });
-      writeWavFile(cacheFile, [rendered.buffer], 44100);
+      const wavInfo = readWavInfo(cacheFile);
       return {
         file: cacheFile,
         generated: true,
         asset,
         render: {
-          instrument: rendered.instrument,
-          duration: rendered.duration,
+          instrument: renderRes.instrument,
+          method: renderRes.method,
+          duration: wavInfo ? wavInfo.duration : clip.duration,
           noteCount: clip.noteCount,
           tempo: clip.tempo,
           timeSignature: clip.timeSignature
@@ -455,10 +458,15 @@ export function assetInfo(id) {
 export async function detectAbletonRoots() {
   const candidates = [];
   const home = os.homedir();
-  const docs = path.join(home, 'Documents', 'Ableton');
-  candidates.push(path.join(docs, 'User Library'));
-  candidates.push(path.join(docs, 'Factory Packs'));
+  const docs = path.join(home, 'Documents');
+  const abletonDocs = path.join(docs, 'Ableton');
+
+  // Ableton Live
+  candidates.push(path.join(abletonDocs, 'User Library'));
+  candidates.push(path.join(abletonDocs, 'Factory Packs'));
+  candidates.push(path.join(abletonDocs, 'Live Recordings'));
   candidates.push(path.join(home, 'Music', 'Ableton', 'User Library'));
+
   const programData = process.env.ProgramData || 'C:\\ProgramData';
   const liveDir = path.join(programData, 'Ableton');
   try {
@@ -469,9 +477,21 @@ export async function detectAbletonRoots() {
     for (const version of versions) {
       candidates.push(path.join(liveDir, version, 'Resources', 'Core Library'));
     }
-  } catch {
-    // sin instalación detectada
-  }
+  } catch {}
+
+  // Toontrack / EZdrummer 3 Grooves & Libraries
+  const progFilesX86 = process.env['ProgramFiles(x86)'] || 'C:\\Program Files (x86)';
+  candidates.push(path.join(progFilesX86, 'Common Files', 'Toontrack', 'EZDrummer', 'Midi'));
+  candidates.push(path.join(programData, 'Toontrack', 'EZdrummer 3'));
+  candidates.push(path.join(programData, 'Toontrack', 'Superior Drummer 3'));
+  candidates.push(path.join(docs, 'Toontrack'));
+
+  // User Packs & User MIDIs
+  candidates.push(path.join(docs, 'Packs'));
+  candidates.push(path.join(docs, 'Sobras_Cicatrices_Remix'));
+  candidates.push(path.join(docs, 'bateria fotos y demas'));
+  candidates.push(path.join(home, 'musica-ia', '06-midi'));
+
   const added = [];
   for (const candidate of candidates) {
     try {

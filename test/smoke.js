@@ -5,11 +5,11 @@ import zlib from 'node:zlib';
 import { generateSong } from '../src/generator.js';
 import { writeWavFile } from '../src/wav.js';
 import { sha256File, readWavInfo, createWork, verifyWork, ensureDirs } from '../src/certify.js';
-import { runAgent, AGENTS } from '../src/agents.js';
 import {
   initLibrary, addRoot, scanRoots, queryAssets, prepareAssetAudio, assetInfo, getRoots
 } from '../src/library.js';
 import { composeLibrarySong } from '../src/libraryComposer.js';
+import { notesToMidiBuffer, isDrumMidi, renderMidiEvents } from '../src/midi.js';
 
 const root = path.resolve('.');
 const tmp = path.join(root, 'data', 'tmp', 'smoke');
@@ -175,7 +175,25 @@ async function main() {
     [new Float32Array(44100 * 128 / 10).fill(0.1)],
     44100
   );
+  const midiDir = path.join(libRoot, 'MIDI');
+  ensureDirs(midiDir);
+  const drumNotes = [
+    { pitch: 36, start: 0, duration: 0.1, velocity: 110 },
+    { pitch: 42, start: 0.25, duration: 0.05, velocity: 80 },
+    { pitch: 38, start: 0.5, duration: 0.1, velocity: 100 },
+    { pitch: 36, start: 1, duration: 0.1, velocity: 100 },
+    { pitch: 42, start: 1.75, duration: 0.05, velocity: 70 },
+    { pitch: 38, start: 2.5, duration: 0.1, velocity: 105 }
+  ];
+  for (let index = 0; index < 4; index++) {
+    fs.writeFileSync(path.join(midiDir, `EZ Groove ${index}.mid`), notesToMidiBuffer(drumNotes, 100, 0, 0));
+  }
+  assert(isDrumMidi({ category: 'midi', name: 'EZ Groove 0.mid', notes: drumNotes }),
+    'No se detectó un MIDI de batería de EZdrummer');
+  assert(renderMidiEvents({ notes: drumNotes, category: 'midi', name: 'EZ Groove 0.mid', tempo: 100 }).instrument === 'drums',
+    'El MIDI de batería no se renderizó como batería');
   await scanRoots([]);
+  assert(queryAssets({ kind: 'midi' }).items.length >= 4, 'No se indexaron los grooves MIDI de prueba');
   const composed = composeLibrarySong({ genre: 'pop', duration: 90, seed: 4242 });
   const repeated = composeLibrarySong({ genre: 'pop', duration: 90, seed: 4242 });
   const styledComposition = composeLibrarySong({
@@ -222,30 +240,18 @@ async function main() {
   assert(composed.tracks.some((track) => track.name === 'Melodía' && track.clips.length > 0), 'El motivo no generó clips de melodía');
   assert(JSON.stringify(composed.spec.material.contour) === JSON.stringify(repeated.spec.material.contour), 'El motivo no es reproducible con la misma semilla');
   assert(JSON.stringify(composed.spec.form.map((section) => section.name)) === JSON.stringify(repeated.spec.form.map((section) => section.name)), 'La forma no es reproducible con la misma semilla');
-  console.log(`ok compositor de biblioteca: motivo desarrollado en ${composed.spec.form.length} secciones`);
-
-  const agentRuns = [
-    ['productor', { genre: 'pop', mood: 'alegre', bpm: 120 }],
-    ['composicion', { mood: 'melancolico', mode: 'minor' }],
-    ['mezcla', { tracks: [
-      { name: 'Batería', gain: 8, pan: 0 },
-      { name: 'Bajo', gain: 5, pan: 0 },
-      { name: 'Armonía', gain: -3, pan: -0.2 }
-    ] }],
-    ['derechos', { country: 'espana', usesAI: true, humanContributions: ['edicion'] }]
-  ];
-  for (const [agent, payload] of agentRuns) {
-    const result = runAgent(agent, payload);
-    assert(result && result.summary, `El agente ${agent} no devolvió resumen`);
-    console.log(`ok agente ${agent}`);
-  }
-  assert(AGENTS.length === 4, 'Catálogo de agentes inesperado');
+  assert(composed.spec.groove.groovesAvailable >= 4, 'El compositor no usó los grooves MIDI de la biblioteca');
+  assert(composed.tracks.some((track) => track.name === 'Batería' && track.clips.some((clip) => clip.role === 'kick')),
+    'Los grooves reales no generaron golpes de bombo');
+  const withoutGrooves = composeLibrarySong({ genre: 'pop', duration: 90, seed: 4242, useGrooves: false });
+  assert(withoutGrooves.spec.groove.groovesAvailable === 0, 'Desactivar grooves no restauró los patrones internos');
+  console.log(`ok compositor de biblioteca: motivo desarrollado en ${composed.spec.form.length} secciones y ${composed.spec.groove.groovesAvailable} grooves reales`);
 
   fs.rmSync(tmp, { recursive: true, force: true });
   console.log(`\nSmoke test OK · ${crypto.createHash('sha256').update('musicderechos').digest('hex').slice(0, 12)}`);
 }
 
 main().catch((err) => {
-  console.error('FALLO:', err.message);
+  console.error('FALLO:', err.stack || err.message);
   process.exitCode = 1;
 });

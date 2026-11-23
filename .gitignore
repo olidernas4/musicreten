@@ -1,0 +1,9 @@
+soundfonts/
+*.SF2
+*.sf2
+
+data/assets/cache/
+data/generated/
+data/separated/
+data/tmp/
+data/works/

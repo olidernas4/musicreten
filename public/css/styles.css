@@ -475,33 +475,6 @@ textarea { resize: vertical; line-height: 1.5; }
 .section-row .bar { flex: 1; height: 8px; border-radius: 4px; background: var(--panel-3); overflow: hidden; }
 .section-row .bar i { display: block; height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent-2)); }
 
-/* Agents */
-.agent-card { display: flex; flex-direction: column; gap: 12px; }
-.agent-card header { display: flex; gap: 12px; align-items: flex-start; }
-.agent-badge {
-  width: 34px; height: 34px; flex: none; border-radius: 10px;
-  display: grid; place-items: center; font-size: 11px; font-weight: 700;
-  color: var(--accent); background: rgba(211, 243, 107, 0.09); border: 1px solid rgba(211, 243, 107, 0.24);
-}
-.agent-card header p { font-size: 12px; color: var(--muted); margin-top: 3px; }
-.agent-controls { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
-.agent-output { border-top: 1px solid var(--line-soft); padding-top: 12px; font-size: 12.5px; display: none; }
-.agent-output.visible { display: block; }
-.agent-output h4 { margin: 14px 0 6px; font-size: 11px; text-transform: uppercase; letter-spacing: 1.2px; color: var(--accent); }
-.agent-output h4:first-child { margin-top: 0; }
-.agent-output ul { margin: 0; padding-left: 16px; color: #cfcbdd; line-height: 1.7; }
-.agent-output li + li { margin-top: 4px; }
-.agent-summary { color: var(--text); line-height: 1.6; margin-bottom: 4px; }
-.agent-apply { margin-top: 12px; }
-.finding { display: flex; gap: 8px; padding: 7px 0; border-bottom: 1px dashed var(--line-soft); font-size: 12px; line-height: 1.5; }
-.finding:last-child { border-bottom: 0; }
-.finding .dot { width: 7px; height: 7px; border-radius: 50%; margin-top: 5px; flex: none; background: var(--accent-2); }
-.finding.warn .dot { background: var(--accent-3); }
-.finding.tip .dot { background: var(--accent); }
-.progression-option { border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; margin-top: 8px; background: var(--bg-2); }
-.progression-option strong { display: block; font-size: 13px; margin-bottom: 3px; }
-.progression-option span { display: block; font-size: 11px; color: var(--muted); margin-top: 4px; }
-
 /* Rights */
 #certResultCard { margin-top: 18px; }
 .cert-success { border-color: rgba(121, 217, 190, 0.35); }
@@ -626,7 +599,7 @@ textarea { resize: vertical; line-height: 1.5; }
 }
 
 @media (max-width: 1080px) {
-  .grid-2, .agents-grid { grid-template-columns: 1fr; }
+  .grid-2 { grid-template-columns: 1fr; }
   .separation-stems { grid-template-columns: 1fr; }
   .spec-grid { grid-template-columns: 1fr 1fr; }
   .inspector-grid { grid-template-columns: repeat(3, 1fr); }
@@ -647,7 +620,6 @@ textarea { resize: vertical; line-height: 1.5; }
   .editor { grid-template-columns: 128px 1fr; }
   .track-header { padding: 6px; }
   .track-vol { display: none; }
-  .agent-controls { grid-template-columns: 1fr; }
   .form-grid, .contrib-grid { grid-template-columns: 1fr; }
   .registry-item { grid-template-columns: 1fr; }
   .registry-actions { justify-content: flex-start; }
@@ -674,4 +646,546 @@ textarea { resize: vertical; line-height: 1.5; }
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
+}
+
+/* ==========================================================================
+   Suno Creator Studio Layout & Components
+   ========================================================================== */
+.suno-studio-wrap {
+  display: grid;
+  grid-template-columns: minmax(360px, 440px) minmax(0, 1fr);
+  gap: 24px;
+  align-items: start;
+}
+
+@media (max-width: 980px) {
+  .suno-studio-wrap {
+    grid-template-columns: 1fr;
+  }
+}
+
+.suno-creator-col {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.suno-header-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 4px 0 6px;
+}
+
+.suno-mode-segmented {
+  display: inline-flex;
+  background: #14151a;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 999px;
+  padding: 3px;
+}
+
+.suno-mode-btn {
+  background: transparent;
+  border: none;
+  color: #7b7f90;
+  padding: 6px 16px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+
+.suno-mode-btn.active {
+  background: #272834;
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+
+.suno-select-pill {
+  background: #14151a;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 999px;
+  padding: 6px 14px;
+  color: #f0f1f6;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  outline: none;
+}
+
+.suno-quick-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1.2fr;
+  gap: 8px;
+}
+
+.suno-action-chip {
+  background: #181920;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 12px;
+  padding: 10px 8px;
+  color: #e2e4ec;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.15s ease;
+}
+
+.suno-action-chip:hover {
+  background: #22232c;
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+.chip-plus {
+  color: #ff3b82;
+  margin-right: 3px;
+  font-weight: 700;
+}
+
+/* Suno Cards & Accordions */
+.suno-card {
+  background: #16171e;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 20px;
+  padding: 16px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+  transition: border-color 0.2s ease;
+}
+
+.suno-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  user-select: none;
+  padding: 2px 2px 10px;
+}
+
+.suno-header-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.suno-arrow {
+  font-size: 12px;
+  color: #8a8d9a;
+  transition: transform 0.2s ease;
+  display: inline-block;
+}
+
+.suno-card.collapsed .suno-arrow {
+  transform: rotate(-90deg);
+}
+
+.suno-card.collapsed .suno-card-body {
+  display: none;
+}
+
+.suno-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: #f3f4f8;
+}
+
+.suno-tools {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.suno-tool-btn {
+  background: transparent;
+  border: none;
+  color: #7b7f90;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  font-size: 13px;
+  transition: all 0.15s ease;
+}
+
+.suno-tool-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+}
+
+/* Lyrics Card */
+.suno-lyrics-input {
+  background: transparent;
+  border: none;
+  width: 100%;
+  outline: none;
+  color: #8c90a1;
+  font-family: inherit;
+  font-size: 13.5px;
+  line-height: 1.6;
+  resize: vertical;
+  min-height: 200px;
+  padding: 4px 2px;
+}
+
+.suno-lyrics-input::placeholder {
+  color: #636677;
+}
+
+.suno-sparkle-center {
+  display: flex;
+  justify-content: center;
+  padding-top: 10px;
+  padding-bottom: 4px;
+}
+
+.suno-sparkle-circle {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: #23242e;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #fff;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  font-size: 17px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
+  transition: all 0.2s ease;
+}
+
+.suno-sparkle-circle:hover {
+  background: #2c2e3a;
+  border-color: rgba(255, 255, 255, 0.25);
+  transform: scale(1.08);
+}
+
+/* Styles Card */
+.suno-styles-input {
+  background: transparent;
+  border: none;
+  width: 100%;
+  outline: none;
+  color: #8c90a1;
+  font-family: inherit;
+  font-size: 14px;
+  line-height: 1.55;
+  resize: none;
+  padding: 2px 2px;
+}
+
+.suno-tags-shelf {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 14px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+
+.suno-circle-action {
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  font-size: 14px;
+  transition: transform 0.15s ease;
+}
+
+.suno-circle-action.wand {
+  background: #2563eb;
+  color: #fff;
+  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);
+}
+
+.suno-circle-action.refresh {
+  background: #272832;
+  color: #c9cdd8;
+}
+
+.suno-circle-action:hover {
+  transform: scale(1.1);
+}
+
+.suno-tags-scroller {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.suno-tags-scroller::-webkit-scrollbar {
+  display: none;
+}
+
+.suno-tag {
+  background: #1c1d25;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-size: 12px;
+  color: #8c90a1;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+}
+
+.suno-tag:hover {
+  border-color: rgba(255, 255, 255, 0.2);
+  color: #fff;
+}
+
+.suno-tag.active {
+  background: #282935;
+  border-color: rgba(255, 255, 255, 0.25);
+  color: #fff;
+}
+
+/* Options Card */
+.suno-options-content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding-top: 6px;
+}
+
+.suno-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.suno-row-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #e5e7eb;
+}
+
+.suno-info {
+  color: #636677;
+  font-size: 11px;
+  cursor: help;
+}
+
+.suno-subtag {
+  color: #8c90a1;
+  font-size: 11.5px;
+  margin-left: 4px;
+}
+
+.suno-toggle-group {
+  display: inline-flex;
+  background: #111217;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 999px;
+  padding: 2px;
+}
+
+.suno-toggle-group .suno-select-pill {
+  background: transparent;
+  border: none;
+  border-radius: 999px;
+  padding: 5px 10px;
+  max-width: 170px;
+}
+
+.suno-btn-toggle {
+  background: transparent;
+  border: none;
+  color: #7b7f90;
+  font-size: 12px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.suno-btn-toggle.active {
+  background: #272834;
+  color: #fff;
+  font-weight: 500;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+}
+
+/* Pink Sliders with Ticks */
+.suno-slider-row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.suno-slider-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.suno-pink-val {
+  font-weight: 600;
+  font-size: 12.5px;
+  color: #fff;
+}
+
+.suno-slider-track-wrap {
+  position: relative;
+  height: 24px;
+  display: flex;
+  align-items: center;
+}
+
+.suno-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 4px;
+  background: #252631;
+  border-radius: 2px;
+  outline: none;
+  position: relative;
+  z-index: 2;
+  margin: 0;
+}
+
+.suno-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 13px;
+  height: 22px;
+  border-radius: 4px;
+  background: #ff3b82;
+  cursor: pointer;
+  box-shadow: 0 0 10px rgba(255, 59, 130, 0.5);
+  transition: transform 0.1s ease;
+}
+
+.suno-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.1);
+}
+
+.suno-slider-ticks {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  pointer-events: none;
+  z-index: 1;
+  color: #313340;
+  font-size: 11px;
+  padding: 0 4px;
+}
+
+.suno-text-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #121319;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
+  padding: 9px 12px;
+}
+
+.suno-row-ico {
+  font-size: 14px;
+  color: #ff3b82;
+}
+
+.suno-row-input {
+  background: transparent;
+  border: none;
+  outline: none;
+  color: #fff;
+  font-size: 13px;
+  width: 100%;
+}
+
+.suno-row-input::placeholder {
+  color: #555869;
+}
+
+.suno-row-save {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.suno-save-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #e5e7eb;
+}
+
+.suno-btn-workspace {
+  background: #23242e;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 999px;
+  padding: 6px 14px;
+  color: #d1d5db;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.suno-btn-workspace:hover {
+  background: #2b2c38;
+  color: #fff;
+}
+
+/* Crear Button */
+.suno-create-action-wrap {
+  margin-top: 4px;
+}
+
+.suno-btn-crear {
+  width: 100%;
+  background: linear-gradient(135deg, #2a2c38, #1c1d25);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+  padding: 15px 24px;
+  color: #fff;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.4);
+  transition: all 0.2s ease;
+}
+
+.suno-btn-crear:hover {
+  background: linear-gradient(135deg, #353846, #242530);
+  border-color: rgba(255, 255, 255, 0.22);
+  transform: translateY(-1px);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
+}
+
+.suno-btn-crear:active {
+  transform: translateY(1px);
+}
+
+.suno-btn-crear:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.suno-player-col {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }

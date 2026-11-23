@@ -1,0 +1,159 @@
+{
+    "version":  "0.0.1",
+    "configurations":  [
+                           {
+                               "name":  "sigma-pga-backend",
+                               "runtimeExecutable":  "npm",
+                               "runtimeArgs":  [
+                                                   "--prefix",
+                                                   "D:/DESARROLLO_WEB/DEVOPS/SIGMA_PGA/backend",
+                                                   "run",
+                                                   "dev"
+                                               ],
+                               "port":  3000
+                           },
+                           {
+                               "name":  "sigma-pga-frontend",
+                               "runtimeExecutable":  "npm",
+                               "runtimeArgs":  [
+                                                   "--prefix",
+                                                   "D:/DESARROLLO_WEB/DEVOPS/SIGMA_PGA/frontend",
+                                                   "run",
+                                                   "dev"
+                                               ],
+                               "port":  5173
+                           },
+                           {
+                               "name":  "qr-backend",
+                               "runtimeExecutable":  "npm",
+                               "runtimeArgs":  [
+                                                   "--prefix",
+                                                   "D:/DESARROLLO_WEB/DEVOPS/QR_Control_Asistencia/backend",
+                                                   "run",
+                                                   "dev"
+                                               ],
+                               "port":  3000
+                           },
+                           {
+                               "name":  "qr-frontend",
+                               "runtimeExecutable":  "npm",
+                               "runtimeArgs":  [
+                                                   "--prefix",
+                                                   "D:/DESARROLLO_WEB/DEVOPS/QR_Control_Asistencia/frontend",
+                                                   "run",
+                                                   "dev"
+                                               ],
+                               "port":  5173
+                           },
+                           {
+                               "name":  "evalua-backend",
+                               "runtimeExecutable":  "npm",
+                               "runtimeArgs":  [
+                                                   "--prefix",
+                                                   "D:/DESARROLLO_WEB/DEVOPS/evalua_app/backend",
+                                                   "run",
+                                                   "dev"
+                                               ],
+                               "port":  3000
+                           },
+                           {
+                               "name":  "evalua-frontend",
+                               "runtimeExecutable":  "npm",
+                               "runtimeArgs":  [
+                                                   "--prefix",
+                                                   "D:/DESARROLLO_WEB/DEVOPS/evalua_app/frontend",
+                                                   "run",
+                                                   "dev"
+                                               ],
+                               "port":  5173
+                           },
+                           {
+                               "name":  "sastre360-backend",
+                               "runtimeExecutable":  "pnpm",
+                               "runtimeArgs":  [
+                                                   "-C",
+                                                   "D:/DESARROLLO_WEB/DEVOPS/SASTRE360/Backend",
+                                                   "run",
+                                                   "dev"
+                                               ],
+                               "port":  3000
+                           },
+                           {
+                               "name":  "sastre360-frontend",
+                               "runtimeExecutable":  "pnpm",
+                               "runtimeArgs":  [
+                                                   "-C",
+                                                   "D:/DESARROLLO_WEB/DEVOPS/SASTRE360/Frontend",
+                                                   "run",
+                                                   "dev"
+                                               ],
+                               "port":  5173
+                           },
+                           {
+                               "name":  "sigma-backend",
+                               "runtimeExecutable":  "npm",
+                               "runtimeArgs":  [
+                                                   "--prefix",
+                                                   "D:/DESARROLLO_WEB/DEVOPS/SIGMA/backend",
+                                                   "run",
+                                                   "dev"
+                                               ],
+                               "port":  3000
+                           },
+                           {
+                               "name":  "sigma-frontend",
+                               "runtimeExecutable":  "npm",
+                               "runtimeArgs":  [
+                                                   "--prefix",
+                                                   "D:/DESARROLLO_WEB/DEVOPS/SIGMA/frontend",
+                                                   "run",
+                                                   "dev"
+                                               ],
+                               "port":  5173
+                           },
+                           {
+                               "name":  "sgpa-backend",
+                               "runtimeExecutable":  "npm",
+                               "runtimeArgs":  [
+                                                   "--prefix",
+                                                   "D:/DESARROLLO_WEB/DEVOPS/sgpa_sena/backend",
+                                                   "run",
+                                                   "dev"
+                                               ],
+                               "port":  3000
+                           },
+                           {
+                               "name":  "sgpa-frontend",
+                               "runtimeExecutable":  "npm",
+                               "runtimeArgs":  [
+                                                   "--prefix",
+                                                   "D:/DESARROLLO_WEB/DEVOPS/sgpa_sena/frontend",
+                                                   "run",
+                                                   "dev"
+                                               ],
+                               "port":  5173
+                           },
+                           {
+                               "name":  "partitura-backend",
+                               "runtimeExecutable":  "npm",
+                               "runtimeArgs":  [
+                                                   "--prefix",
+                                                   "D:/DESARROLLO_WEB/DEVOPS/partitura_guitarra/backend",
+                                                   "run",
+                                                   "dev"
+                                               ],
+                               "port":  3000
+                           },
+                           {
+                               "name":  "partitura-frontend",
+                               "runtimeExecutable":  "npm",
+                               "runtimeArgs":  [
+                                                   "--prefix",
+                                                   "D:/DESARROLLO_WEB/DEVOPS/partitura_guitarra/frontend",
+                                                   "run",
+                                                   "dev"
+                                               ],
+                               "port":  5173
+                           }
+                       ]
+}

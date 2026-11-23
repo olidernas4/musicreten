@@ -8,7 +8,8 @@ import { spawn } from 'node:child_process';
 import { encodeWav } from './src/wav.js';
 import { generateSong } from './src/generator.js';
 import { composeLibrarySong } from './src/libraryComposer.js';
-import { runAgent, genreCatalog } from './src/agents.js';
+import { describeGrooveLibrary } from './src/drumGrooves.js';
+import { genreCatalog } from './src/music.js';
 import {
   initLibrary, getRoots, addRoot, removeRoot, scanRoots, queryAssets,
   prepareAssetAudio, assetInfo, detectAbletonRoots
@@ -574,11 +575,8 @@ const server = http.createServer(async (req, res) => {
       return sendJson(res, 200, { ok: true, genres: genreCatalog() });
     }
 
-    if (pathname === '/api/agent' && req.method === 'POST') {
-      const body = await readJsonBody(req);
-      if (!body || !body.agent) return sendJson(res, 400, { ok: false, error: 'Falta el agente.' });
-      const result = runAgent(body.agent, body.payload || {});
-      return sendJson(res, 200, { ok: true, result });
+    if (pathname === '/api/drums/catalog' && req.method === 'GET') {
+      return sendJson(res, 200, { ok: true, drums: describeGrooveLibrary() });
     }
 
     if (pathname === '/api/assets/roots' && req.method === 'GET') {

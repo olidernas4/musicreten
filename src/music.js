@@ -228,11 +228,29 @@ export function suggestTempo(genre) {
   return map[genre] || 100;
 }
 
+export function genreCatalog() {
+  const info = {
+    lofi: ['Lo-fi / Chill', [70, 88]],
+    pop: ['Pop', [96, 124]],
+    electronic: ['Electrónica / EDM', [118, 128]],
+    cinematic: ['Cinemática', [60, 84]],
+    trap: ['Trap / Urbano', [68, 80]],
+    rock: ['Rock', [100, 140]],
+    metalcore: ['Metalcore / Post-hardcore', [140, 155]],
+    acustico: ['Acústico / Balada', [72, 100]],
+    jazz: ['Jazz / Neo-soul', [84, 110]]
+  };
+  return Object.entries(info).map(([id, [label, bpm]]) => ({ id, label, bpm }));
+}
+
 export function detectFromPrompt(prompt) {
   const text = String(prompt || '').toLowerCase();
   const found = { genre: null, mood: null, tempo: null, mode: null };
-  if (/\b(?:metalcore|metal[\s-]+core|post[\s-]+hardcore|deathcore)\b/.test(text)) {
+  if (/\b(?:metalcore|metal[\s-]+core|post[\s-]+hardcore|deathcore|djent|breakdown|heavy metal|thrash)\b/.test(text)) {
     found.genre = 'metalcore';
+    found.mode = 'minor';
+    found.mood = 'energetico';
+    found.tempo = 145;
   }
   const genres = {
     lofi: ['lofi', 'lo-fi', 'chill', 'estudio', 'relax', 'hip hop suave'],

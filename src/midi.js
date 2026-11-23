@@ -1,6 +1,9 @@
 import fs from 'node:fs';
+import path from 'node:path';
+import { spawn } from 'node:child_process';
 import zlib from 'node:zlib';
 import { mulberry32 } from './music.js';
+import { writeWavFile, decodeWav } from './wav.js';
 import {
   SR, setRandom, makeBuffer,
   addKick, addSnare, addHat, addClap, addCrash, addTom,
@@ -244,18 +247,30 @@ export function parseAlcFile(buffer) {
   };
 }
 
-const DRUM_MAP = new Map([
-  [35, 'kick'], [36, 'kick'],
-  [37, 'snare'], [38, 'snare'], [40, 'snare'],
+export const DRUM_MAP = new Map([
+  [12, 'kick'], [13, 'kick'], [35, 'kick'], [36, 'kick'],
+  [25, 'snare'], [26, 'snare'], [37, 'snare'], [38, 'snare'], [40, 'snare'],
   [39, 'clap'],
-  [42, 'closedHat'], [44, 'closedHat'], [46, 'openHat'],
-  [49, 'crash'], [51, 'crash'], [52, 'crash'], [55, 'crash'], [57, 'crash'],
-  [41, 'tom'], [43, 'tom'], [45, 'tom'], [47, 'tom'], [48, 'tom'], [50, 'tom']
+  [21, 'closedHat'], [22, 'closedHat'], [42, 'closedHat'], [44, 'closedHat'], [62, 'closedHat'],
+  [46, 'openHat'], [61, 'openHat'],
+  [49, 'crash'], [51, 'crash'], [52, 'crash'], [53, 'crash'], [55, 'crash'], [57, 'crash'], [59, 'crash'],
+  [24, 'tom'], [41, 'tom'], [43, 'tom'], [45, 'tom'], [47, 'tom'], [48, 'tom'], [50, 'tom'],
+  [2, 'shaker'], [3, 'shaker'], [14, 'shaker'], [15, 'shaker'], [16, 'shaker'],
+  [54, 'shaker'], [56, 'shaker'], [60, 'shaker'], [63, 'shaker'], [64, 'shaker'], [75, 'shaker'], [80, 'shaker'], [82, 'shaker']
 ]);
+
+export function isDrumMidi({ category = '', name = '', notes = [], source = '' } = {}) {
+  const text = `${category} ${name} ${source}`.toLowerCase();
+  if (/\.(mid|midi|alc)$/i.test(name) && /ezdrummer|toontrack|drum/.test(text) && !/bass|guitar|piano/.test(text)) return true;
+  if (/drum|percussion|perc|kit|beat|break|groove|fill/.test(text)) return true;
+  if (!notes.length) return false;
+  const drumNotes = notes.filter((note) => note.channel === 9 || DRUM_MAP.has(note.pitch)).length;
+  return drumNotes > notes.length * 0.6;
+}
 
 function instrumentFor(category, name, notes) {
   const text = `${category || ''} ${name || ''}`.toLowerCase();
-  if (/drum|perc|kit|beat|break|groove/.test(text)) return 'drums';
+  if (isDrumMidi({ category, name, notes })) return 'drums';
   if (/bass|sub/.test(text)) return 'bass';
   if (/rhodes|electric piano|epiano|wurli/.test(text)) return 'epiano';
   if (/pad|texture|ambient|atmos|choir/.test(text)) return 'pad';
@@ -263,8 +278,6 @@ function instrumentFor(category, name, notes) {
   if (/guitar|riff|strum/.test(text)) return 'guitar';
   if (/lead|synth|arp|pluck|melod/.test(text)) return 'lead';
   if (/key|piano|organ/.test(text)) return 'piano';
-  const drumNotes = notes.filter((note) => note.channel === 9 || DRUM_MAP.has(note.pitch)).length;
-  if (drumNotes > notes.length * 0.6) return 'drums';
   return 'piano';
 }
 
@@ -276,6 +289,7 @@ function addDrumNote(buffer, note) {
   else if (hit === 'clap') addClap(buffer, SR, note.start, gain * 0.8);
   else if (hit === 'openHat') addHat(buffer, SR, note.start, true, gain * 0.6);
   else if (hit === 'closedHat') addHat(buffer, SR, note.start, false, gain * 0.55);
+  else if (hit === 'shaker') addHat(buffer, SR, note.start, false, gain * 0.3);
   else if (hit === 'crash') addCrash(buffer, SR, note.start, gain * 0.55);
   else if (hit === 'tom') addTom(buffer, SR, note.start, note.pitch, gain * 0.7);
   else if (note.pitch < 40) addKick(buffer, SR, note.start, gain * 0.7);
@@ -368,3 +382,174 @@ export function readClipFile(filePath, ext) {
   }
   throw new Error('Formato MIDI no soportado');
 }
+
+function writeVarBytes(val) {
+  const bytes = [val & 0x7f];
+  val >>= 7;
+  while (val > 0) {
+    bytes.push((val & 0x7f) | 0x80);
+    val >>= 7;
+  }
+  return Buffer.from(bytes.reverse());
+}
+
+export function notesToMidiBuffer(notes, tempo = 120, channel = 0, program = 0) {
+  const division = 480;
+  const usPerBeat = Math.round(60000000 / Math.max(20, Math.min(300, tempo)));
+  const tempoBuf = Buffer.from([
+    0x00, 0xff, 0x51, 0x03,
+    (usPerBeat >> 16) & 0xff, (usPerBeat >> 8) & 0xff, usPerBeat & 0xff
+  ]);
+  const progBuf = Buffer.from([0x00, 0xc0 | (channel & 0x0f), program & 0x7f]);
+
+  const events = [];
+  for (const n of notes) {
+    const startTick = Math.max(0, Math.round((n.start * tempo * division) / 60));
+    const durTick = Math.max(12, Math.round((n.duration * tempo * division) / 60));
+    const endTick = startTick + durTick;
+    const vel = Math.max(1, Math.min(127, Math.round(n.velocity || 90)));
+    const pitch = Math.max(0, Math.min(127, Math.round(n.pitch)));
+    events.push({ tick: startTick, type: 'on', pitch, vel, channel });
+    events.push({ tick: endTick, type: 'off', pitch, vel: 0, channel });
+  }
+  events.sort((a, b) => a.tick - b.tick || (a.type === 'off' ? -1 : 1));
+
+  const trkBytes = [tempoBuf, progBuf];
+  let lastTick = 0;
+  for (const ev of events) {
+    const delta = Math.max(0, ev.tick - lastTick);
+    lastTick = ev.tick;
+    const deltaBuf = writeVarBytes(delta);
+    const status = (ev.type === 'on' ? 0x90 : 0x80) | (ev.channel & 0x0f);
+    trkBytes.push(deltaBuf, Buffer.from([status, ev.pitch, ev.vel]));
+  }
+  trkBytes.push(Buffer.from([0x00, 0xff, 0x2f, 0x00]));
+
+  const trkData = Buffer.concat(trkBytes);
+  const trkHead = Buffer.alloc(8);
+  trkHead.write('MTrk', 0, 'ascii');
+  trkHead.writeUInt32BE(trkData.length, 4);
+
+  const mthd = Buffer.from([0x4d, 0x54, 0x68, 0x64, 0x00, 0x00, 0x00, 0x06, 0x00, 0x00, 0x00, 0x01, 0x01, 0xe0]);
+  return Buffer.concat([mthd, trkHead, trkData]);
+}
+
+export function getFluidSynthPath() {
+  const local = path.resolve('tools/fluidsynth/bin/fluidsynth.exe');
+  const candidates = [
+    local,
+    process.env.FLUIDSYNTH_PATH,
+    'C:\\Users\\Usuario\\musica-ia\\tools\\fluidsynth\\fluidsynth-v2.6.1-win10-x64-cpp11\\bin\\fluidsynth.exe',
+    'C:/Users/Usuario/musica-ia/tools/fluidsynth/fluidsynth-v2.6.1-win10-x64-cpp11/bin/fluidsynth.exe',
+    'fluidsynth'
+  ].filter(Boolean);
+  for (const c of candidates) {
+    try {
+      if (fs.existsSync(c)) return c;
+    } catch {}
+  }
+  return 'fluidsynth';
+}
+
+export function getSoundFontPath() {
+  const local = path.resolve('soundfonts/FluidR3 GM2-2.SF2');
+  const candidates = [
+    local,
+    process.env.SOUNDFONT_PATH,
+    'C:\\Users\\Usuario\\musica-ia\\soundfonts\\FluidR3 GM2-2.SF2',
+    'C:/Users/Usuario/musica-ia/soundfonts/FluidR3 GM2-2.SF2'
+  ].filter(Boolean);
+  for (const c of candidates) {
+    try {
+      if (fs.existsSync(c)) return c;
+    } catch {}
+  }
+  return null;
+}
+
+export async function renderClipToWavFile({ filePath = null, notes = [], tempo = 120, category = '', name = '', outputPath }) {
+  const sfPath = getSoundFontPath();
+  const fsBin = getFluidSynthPath();
+  const instrument = instrumentFor(category, name, notes);
+  const drum = instrument === 'drums';
+
+  if (sfPath && fs.existsSync(sfPath)) {
+    let sourceMid = filePath;
+    let tempMid = null;
+
+    if (!sourceMid || !fs.existsSync(sourceMid) || (drum && notes.length)) {
+      if (!Array.isArray(notes) || !notes.length) throw new Error('El clip no contiene notas');
+      let ch = 0;
+      let prog = 0;
+      const text = `${category || ''} ${name || ''}`.toLowerCase();
+      if (drum) {
+        ch = 9;
+        prog = 0;
+      } else if (instrument === 'bass') {
+        ch = 0;
+        prog = /slap/i.test(text) ? 36 : /pick/i.test(text) ? 34 : /synth|sub/i.test(text) ? 38 : 33;
+      } else if (instrument === 'guitar') {
+        ch = 0;
+        prog = /dist|metal|heavy/i.test(text) ? 30 : /clean/i.test(text) ? 27 : /acoust/i.test(text) ? 25 : 29;
+      } else if (instrument === 'epiano') {
+        ch = 0;
+        prog = 4;
+      } else if (instrument === 'pad') {
+        ch = 0;
+        prog = 89;
+      } else if (instrument === 'strings') {
+        ch = 0;
+        prog = 48;
+      } else if (instrument === 'lead') {
+        ch = 0;
+        prog = 29;
+      } else {
+        ch = 0;
+        prog = 0;
+      }
+
+      const smfBuf = notesToMidiBuffer(notes, tempo, ch, prog);
+      tempMid = path.join(path.dirname(outputPath), `temp_${Date.now()}_${Math.random().toString(36).slice(2, 8)}.mid`);
+      fs.writeFileSync(tempMid, smfBuf);
+      sourceMid = tempMid;
+    }
+
+    try {
+      await new Promise((resolve, reject) => {
+        const child = spawn(fsBin, ['-ni', '-F', outputPath, sfPath, sourceMid], { windowsHide: true });
+        let stderr = '';
+        child.stderr.on('data', (d) => { stderr += d.toString(); });
+        child.on('error', reject);
+        child.on('close', (code) => {
+          if (code === 0 && fs.existsSync(outputPath)) resolve();
+          else reject(new Error(`FluidSynth error (code ${code}): ${stderr}`));
+        });
+      });
+      const decoded = decodeWav(fs.readFileSync(outputPath));
+      let peak = 0;
+      for (const channel of decoded.channels) {
+        for (let i = 0; i < channel.length; i++) peak = Math.max(peak, Math.abs(channel[i]));
+      }
+      if (peak > 0 && peak < 0.95) {
+        const factor = 0.9 / peak;
+        for (const channel of decoded.channels) {
+          for (let i = 0; i < channel.length; i++) channel[i] = Math.min(1, channel[i] * factor);
+        }
+        writeWavFile(outputPath, decoded.channels, decoded.sampleRate);
+      }
+      return { method: 'fluidsynth', instrument, midiChannel: drum ? 10 : 1 };
+    } catch (err) {
+      // If FluidSynth failed on a specific mid, fall back to internal
+    } finally {
+      if (tempMid) {
+        try { fs.unlinkSync(tempMid); } catch {}
+      }
+    }
+  }
+
+  // Fallback to internal buffer rendering if FluidSynth is not available or failed
+  const rendered = renderMidiEvents({ notes, category, name, tempo });
+  writeWavFile(outputPath, [rendered.buffer], 44100);
+  return { method: 'internal', instrument: rendered.instrument };
+}
+
